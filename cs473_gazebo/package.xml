@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
   <name>cs473_gazebo</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>The cs473_gazebo package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="thomas@todo.todo">thomas</maintainer>
+  <maintainer email="thomas.weng11@gmail.com">Thomas Weng</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
