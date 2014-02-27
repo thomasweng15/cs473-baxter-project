@@ -19,8 +19,24 @@ from baxter_core_msgs.srv import (
     SolvePositionIKRequest,
 )
 
-def ik_solver(limb):
-	rospy.init_node("cs473_basic_poke")
+class BasicMove():
+	def __init__(self, limb):
+		self._limb = baxter_interface.limb.Limb(limb) 
+		#self.neutral_jp = poses([limb]) # NOTE the hard-coded pose
+
+		ik_srv = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
+		self._iksvc = rospy.ServiceProxy(ik_srv, SolvePositionIK)
+		self._ikreq = SolvePositionIKRequest()
+
+		rs = baxter_interface.RobotEnable()
+		print "Enabling robot..."
+		rs.enable()
+
+	def set_neutral(self):
+		self._limb.move_to_neutral()
+
+# TODO incorporate into class
+def _find_jp(limb):
 	ns = "ExternalTools/" + limb + "/PositionKinematicsNode/IKService"
 	iksvc = rospy.ServiceProxy(ns, SolvePositionIK)
 	ikreq = SolvePositionIKRequest()
@@ -30,19 +46,19 @@ def ik_solver(limb):
 	poses = {
 		'right': PoseStamped(
 			header=hdr,
-		    pose=Pose(
-		        position=Point(
-		            x=0.656982770038,
-		            y=-0.852598021641,
-		            z=0.0388609422173,
-		        ),
-		        orientation=Quaternion(
-		            x=0.367048116303,
-		            y=0.885911751787,
-		            z=-0.108908281936,
-		            w=0.261868353356,
-		        ),
-		    ),
+	    	pose=Pose(
+	        	position=Point(
+	            	x=0.656982770038,
+	            	y=-0.852598021641,
+	            	z=0.0388609422173,
+	        	),
+	        	orientation=Quaternion(
+	            	x=0.367048116303,
+	            	y=0.885911751787,
+	            	z=-0.108908281936,
+	            	w=0.261868353356,
+	        	),
+	    	),
 		),
 	}
 
@@ -65,14 +81,12 @@ def ik_solver(limb):
 
 	return 0
 
-def main():
-	print("Initializing node... ")
-	rospy.init_node("cs473_basic_poke")
-	print("Getting robot state... ")
-	rs = baxter_interface.RobotEnable()
-	init_state = rs.state().enabled
 
-	ik_solver('right')
+def main():
+	rospy.init_node("cs473_basic_poke")
+
+	BasicMove('right').set_neutral()
+
 
 if __name__ == '__main__':
 	sys.exit(main()) 
