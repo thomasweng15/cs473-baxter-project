@@ -52,15 +52,19 @@ class BasicMove():
 	def set_neutral(self):
 		self._limb.move_to_neutral()
 
-	def move_to_position(self, position):
-		limb_joints = self._find_jp(position) 
+	def move_to_coords(self, pose):
+		limb_joints = self._find_jp(pose)
+		#print limb_joints
 		if limb_joints != False:
 			self._limb.move_to_joint_positions(limb_joints)
 			return True
 		else:
 			return False
 
-
+	def move_to_jp(self, position):
+		self._limb.move_to_joint_positions(position) 
+		
+		
 def main():
 	rospy.init_node("cs473_basic_poke")
 
@@ -89,8 +93,20 @@ def main():
 	   		),
 		),
 	}
+	print "Moving to pose specified by coordinates..."
+	bm.move_to_coords(poses['right'])
 
-	bm.move_to_position(poses['right'])
+	initial = {
+		'right_s0': 0.573325318817, 
+		'right_s1': -0.268063142377, 
+		'right_w0': -0.125786424463, 
+		'right_w1': -1.48872835294, 
+		'right_w2': -0.299509748492, 
+		'right_e0': 0.322135965088, 
+		'right_e1': 1.90060219402
+	}
+	print "Moving to pose specified by joint positions..."
+	bm.move_to_jp(initial)
 
 if __name__ == '__main__':
 	sys.exit(main()) 
