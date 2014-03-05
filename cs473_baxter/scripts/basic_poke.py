@@ -27,14 +27,6 @@ class BasicMove():
 		self._iksvc = rospy.ServiceProxy(self._ik_srv, SolvePositionIK)
 		self._ikreq = SolvePositionIKRequest()
 
-		# Verify robot is enabled
-		print "Getting robot state..."
-		self._rs = baxter_interface.RobotEnable()
-		self._init_state = self._rs.state().enabled
-		print "Enabling robot..."
-		self._rs.enable()
-		print "Running. Ctrl-c to quit"
-
 	def _find_jp(self, position):
 		self._ikreq.pose_stamp.append(position)
 		
@@ -67,21 +59,11 @@ class BasicMove():
 
 	def move_to_jp(self, position):
 		self._limb.move_to_joint_positions(position) 
-
-	def clean_shutdown(self):
-		print "\nExiting basic poke..."
-		self._limb.exit_control_mode()
-		if not self._init_state and self._rs.state().enabled:
-			print "Disabling robot..."
-			self._rs.disable()
 		
 def main():
 	rospy.init_node("cs473_basic_poke")
 
 	bm = BasicMove('right')
-
-	# register shutdown callback
-	rospy.on_shutdown(bm.clean_shutdown)
 
 	print "Moving to neutral pose..."
 	bm.set_neutral()
@@ -106,8 +88,8 @@ def main():
 	   		),
 		),
 	}
-	print "Moving to pose specified by coordinates..."
-	bm.move_to_coords(poses['right'])
+	#print "Moving to pose specified by coordinates..."
+	#bm.move_to_coords(poses['right'])
 
 	initial = {
 		'right_s0': 0.573325318817, 
