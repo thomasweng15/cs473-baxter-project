@@ -2,6 +2,8 @@
 
 import sys
 
+import os.path
+
 import rospy
 
 import baxter_interface
@@ -50,7 +52,6 @@ class BasicMove():
 
 	def move_to_coords(self, pose):
 		limb_joints = self._find_jp(pose)
-		#print limb_joints
 		if limb_joints != False:
 			self._limb.move_to_joint_positions(limb_joints)
 			return True
@@ -60,6 +61,20 @@ class BasicMove():
 	def move_to_jp(self, position):
 		self._limb.move_to_joint_positions(position) 
 		
+def get_jp_from_file():
+	file_path = os.path.dirname(__file__)
+	if file_path != "":
+		os.chdir(file_path)
+	f = open("./../config/right_arm_default_position","r")
+	
+	jp = {}
+	for line in f:
+		l = line.split(', ')
+		jp[l[0]] = float(l[1].strip('\n'))
+
+	return jp
+
+
 def main():
 	rospy.init_node("cs473_basic_poke")
 
@@ -67,7 +82,7 @@ def main():
 
 	print "Moving to neutral pose..."
 	bm.set_neutral()
-
+    
 	# Hard-coded pose
 	hdr = Header(stamp=rospy.Time.now(), frame_id='base')
 	poses = {
@@ -88,21 +103,13 @@ def main():
 	   		),
 		),
 	}
+
 	#print "Moving to pose specified by coordinates..."
 	#bm.move_to_coords(poses['right'])
 
-	initial = {
-		'right_s0': 0.573325318817, 
-		'right_s1': -0.268063142377, 
-		'right_w0': -0.125786424463, 
-		'right_w1': -1.48872835294, 
-		'right_w2': -0.299509748492, 
-		'right_e0': 0.322135965088, 
-		'right_e1': 1.90060219402
-	}
+	joint_position = get_jp_from_file()
 	print "Moving to pose specified by joint positions..."
-	bm.move_to_jp(initial)
-	
+	bm.move_to_jp(joint_position)
 
 if __name__ == '__main__':
 	main() 
