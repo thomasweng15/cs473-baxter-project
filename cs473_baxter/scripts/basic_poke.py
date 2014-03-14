@@ -61,18 +61,18 @@ class BasicMove():
 	def move_to_jp(self, position):
 		self._limb.move_to_joint_positions(position) 
 		
-def get_jp_from_file():
-	file_path = os.path.dirname(__file__)
-	if file_path != "":
-		os.chdir(file_path)
-	f = open("./../config/right_arm_default_position","r")
-	
-	jp = {}
-	for line in f:
-		l = line.split(', ')
-		jp[l[0]] = float(l[1].strip('\n'))
+	def get_jp_from_file(self):
+		file_path = os.path.dirname(__file__)
+		if file_path != "":
+			os.chdir(file_path)
+		f = open("./../config/right_arm_default_position","r")
+		
+		jp = {}
+		for line in f:
+			l = line.split(', ')
+			jp[l[0]] = float(l[1].strip('\n'))
 
-	return jp
+		return jp
 
 
 def main():
@@ -107,7 +107,7 @@ def main():
 	#print "Moving to pose specified by coordinates..."
 	#bm.move_to_coords(poses['right'])
 
-	joint_position = get_jp_from_file()
+	joint_position = bm.get_jp_from_file()
 	print "Moving to pose specified by joint positions..."
 	bm.move_to_jp(joint_position)
 
