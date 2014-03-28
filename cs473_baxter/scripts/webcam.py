@@ -1,17 +1,20 @@
 #!/usr/bin/python
 
 import sys
+import os
 
 import cv2
 
 import rospy
 
+IMAGES_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
+
 class Webcam():
 	def __init__(self):
 		self.device = 0 # assume we want first device
 		self.capture = cv2.VideoCapture(self.device)
-		self.capture.set(3,320)
-		self.capture.set(4,240)
+		self.capture.set(3,1200)
+		self.capture.set(4,1600)
 
 		if not self.capture:
 			print "Error opening capture device"
@@ -26,35 +29,18 @@ class Webcam():
 			if key == ord('q'):
 				break
 
-	def take_snapshots(self, delay=2):
-		print "press SPACE to take snapshots, press 'q' to quit."
-		take_picture = False;
-		t0, filenum = 0, 1
-
-		while True:
-			val, frame = self.capture.read()
-			cv2.imshow("video", frame)
-
-			key = cv2.waitKey(50) % 256
-			if key == ord(' '):
-				t0 = cv2.getTickCount()
-				take_picture = True
-			elif key == ord('q'):
-				break
-
-			if take_picture and ((cv2.getTickCount()-t0) / cv2.getTickFrequency()) > delay:
-				cv2.imwrite(str(filenum) + ".jpg", frame)
-				print "Image saved."
-				filenum += 1
-				take_picture = False
-
-			self.capture.release
+	def get_background(self):
+		print "Getting background for object detection through bg subtraction."
+		val, frame = self.capture.read()
+		cv2.imwrite(os.path.join(IMAGES_DIR, "background.jpg"), frame)
+		print "Background saved."
+		self.capture.release
 
 def main():
 	w = Webcam()
+	w.get_background()
 
 	#w.show_video_stream()
-	w.take_snapshots()
 
 if __name__ == '__main__':
 	main()
