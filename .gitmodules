@@ -1,0 +1,3 @@
+[submodule "cs473_baxter/cs473vision"]
+	path = cs473_baxter/cs473vision
+	url = https://github.com/vancezuo/cs473-vision.git
