@@ -7,14 +7,14 @@ import cv2
 
 import rospy
 
-IMAGES_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
-
 class Webcam():
-	def __init__(self):
+	def __init__(self, img_dir):
 		self.device = 0 # assume we want first device
+		print "Opening capture device..."
 		self.capture = cv2.VideoCapture(self.device)
 		self.capture.set(3,1200)
 		self.capture.set(4,1600)
+		self.img_dir = img_dir
 
 		if not self.capture:
 			print "Error opening capture device"
@@ -29,18 +29,22 @@ class Webcam():
 			if key == ord('q'):
 				break
 
-	def get_background(self):
-		print "Getting background for object detection through bg subtraction."
+	def take_snapshot(self, filename):
 		val, frame = self.capture.read()
-		cv2.imwrite(os.path.join(IMAGES_DIR, "background.jpg"), frame)
-		print "Background saved."
+		full = [filename, '.jpg']
+		cv2.imwrite(os.path.join(self.img_dir, ''.join(full)), frame)
+		print "Image saved."
+
+	def release(self):
 		self.capture.release
 
 def main():
-	w = Webcam()
-	w.get_background()
+	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"
+	w = Webcam(img_dir)
+	w.take_snapshot("back")
+	w.take_snapshot("fore")
+	w.release()
 
-	#w.show_video_stream()
 
 if __name__ == '__main__':
 	main()
