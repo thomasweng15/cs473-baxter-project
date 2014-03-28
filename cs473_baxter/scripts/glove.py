@@ -24,13 +24,12 @@ class Glove():
 		print "Calibrating gripper..."
 		self.gripper.calibrate()
 		self.gripper.open()
-		# set moving force
-		# set holding force
 		print "Calibration complete."
-		prompt = raw_input("Press any key when glove is in position.")
+		prompt = raw_input("Press ENTER when glove is in position.")
 		self.gripper.close()
 
 	def release_glove(self):
+		self.gripper.calibrate()
 		self.gripper.open()
 
 	def clean_shutdown(self):
@@ -52,7 +51,6 @@ def main():
 
 	g = Glove('right')
 
-	# register shutdown callback
 	rospy.on_shutdown(g.clean_shutdown)
 
 	if args.grip == 'grip':
