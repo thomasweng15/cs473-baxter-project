@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 import rospy
 
 import baxter_interface
@@ -19,6 +21,13 @@ class BoxFit():
 		self._rs.enable()
 		print "Running. Ctrl-c to quit"
 
+	def is_glove_attached(self):
+		# Verify glove is attached
+		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
+		if glove_on is not "y":
+			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
+			sys.exit(1)
+
 	def compress_object(self):
 		print "compress object"
 
@@ -33,8 +42,8 @@ def main():
 	
 	bf = BoxFit()
 
-	# register shutdown callback
 	rospy.on_shutdown(bf.clean_shutdown)
+	bf.is_glove_attached()
 
 	# Extract object from background
 
