@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import time
 import sys
 import os
 
@@ -12,8 +13,8 @@ class Webcam():
 		self.device = 0 # assume we want first device
 		print "Opening capture device..."
 		self.capture = cv2.VideoCapture(self.device)
-		self.capture.set(3,1200)
-		self.capture.set(4,1600)
+		self.capture.set(3,960)
+		self.capture.set(4,720)
 		self.img_dir = img_dir
 
 		if not self.capture:
@@ -29,21 +30,30 @@ class Webcam():
 			if key == ord('q'):
 				break
 
-	def take_snapshot(self, filename):
+	def take_snapshots(self):
+		print "Taking snapshot of view without object."
 		val, frame = self.capture.read()
-		full = [filename, '.jpg']
-		cv2.imwrite(os.path.join(self.img_dir, ''.join(full)), frame)
+		cv2.imwrite(os.path.join(self.img_dir, "background.jpg"), frame)
 		print "Image saved."
+		print "Place object in center. Press SPACE when finished."
 
-	def release(self):
-		self.capture.release
+		while True:
+			val, frame = self.capture.read()
+			cv2.imshow("input", frame)
+
+			key = cv2.waitKey(50) % 256
+			if key == ord(' '):
+				print "Taking snapshot of view with object."
+				cv2.imwrite(os.path.join(self.img_dir, "foreground.jpg"), frame)
+				print "Image saved."
+				break
 
 def main():
 	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"
 	w = Webcam(img_dir)
-	w.take_snapshot("back")
-	w.take_snapshot("fore")
-	w.release()
+	w.show_video_stream()
+	time.sleep(10)
+	w.take_snapshots()
 
 
 if __name__ == '__main__':

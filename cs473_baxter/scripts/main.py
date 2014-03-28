@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import time
+import os
 
 import rospy
 
@@ -7,6 +7,7 @@ import baxter_interface
 
 from basic_poke import BasicMove
 from webcam import Webcam
+from cs473vision.cs473vision.ObjectDetector import ObjectDetector
 
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
 
@@ -27,15 +28,13 @@ class BoxFit():
 		self._camera = Webcam(img_dir)
 
 	def extract_object_from_bg(self):
-		print "Taking snapshot of view without object."
-		self._camera.take_snapshot("background")
-		wait = raw_input("Place object in center. Press ENTER when finished.")
-		print "Taking snapshot of view with object."
-		self._camera.take_snapshot("foreground")
+		self._camera.take_snapshots()
 
-		# Do diff using cs473vision
-
-		self._camera.release()
+		obj = ObjectDetector()
+		bg_path = os.path.join(IMG_DIR, "background.jpg")
+		fg_path = os.path.join(IMG_DIR, "foreground.jpg")
+		if obj.load_image(bg_path, fg_path) is False:
+			print "Error loading images!"
 
 	def compress_object(self):
 		print "compress object"
