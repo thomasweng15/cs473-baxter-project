@@ -8,7 +8,9 @@ import baxter_interface
 
 class Glove():
 	def __init__(self, gripper):
-		self.gripper = Gripper(gripper)
+		rospy.init_node("cs473_gripper")
+
+		self.gripper = baxter_interface.Gripper(gripper)
 
 		# Verify robot is enabled
 		print "Getting robot state..."
@@ -19,12 +21,14 @@ class Glove():
 		print "Running. Ctrl-c to quit"
 
 	def grip_glove(self):
+		print "Calibrating gripper..."
 		self.gripper.calibrate()
 		self.gripper.open()
 		# set moving force
 		# set holding force
-		# prompt for glove
-		# grip glove
+		print "Calibration complete."
+		prompt = raw_input("Press any key when glove is in position.")
+		self.gripper.close()
 
 	def release_glove(self):
 		self.gripper.open()
@@ -51,7 +55,7 @@ def main():
 	# register shutdown callback
 	rospy.on_shutdown(g.clean_shutdown)
 
-	if args.grip is 'grip':
+	if args.grip == 'grip':
 		g.grip_glove()
 	else:
 		g.release_glove()

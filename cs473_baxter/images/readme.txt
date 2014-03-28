@@ -1,0 +1,1 @@
+This directory stores images used for background subtraction. 
