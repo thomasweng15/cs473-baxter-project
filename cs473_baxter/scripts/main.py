@@ -8,9 +8,6 @@ from basic_poke import BasicMove
 
 class BoxFit():
 	def __init__(self):
-		# NOTE the init of BM may cause issues...
-		self._bm = BasicMove('right')
-
 		# Verify robot is enabled
 		print "Getting robot state..."
 		self._rs = baxter_interface.RobotEnable()
@@ -18,6 +15,10 @@ class BoxFit():
 		print "Enabling robot..."
 		self._rs.enable()
 		print "Running. Ctrl-c to quit"
+		print "\nIf Baxter is not gripping the gripper shield,"
+		print "please terminate this instance and attach the shield by running glove.py."
+
+		self.bm = BasicMove('right')
 
 	def compress_object(self):
 		print "compress object"
@@ -30,10 +31,12 @@ class BoxFit():
 
 def main():
 	rospy.init_node("cs473_box_fit")
-	
-	bf = BoxFit()
 
-	# register shutdown callback
+	# Initializations
+	bf = BoxFit()
+	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
+	
+	## register shutdown callback
 	rospy.on_shutdown(bf.clean_shutdown)
 
 	# Extract object from background
