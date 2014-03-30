@@ -7,7 +7,7 @@ import baxter_interface
 
 from basic_poke import BasicMove
 from webcam import Webcam
-from cs473vision.cs473vision.ObjectDetector import ObjectDetector
+from cs473vision.cs473vision.obj_detect import SegmentedObject
 
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
 
@@ -30,11 +30,13 @@ class BoxFit():
 	def extract_object_from_bg(self):
 		self._camera.take_snapshots()
 
-		obj = ObjectDetector()
 		bg_path = os.path.join(IMG_DIR, "background.jpg")
 		fg_path = os.path.join(IMG_DIR, "foreground.jpg")
-		if obj.load_image(bg_path, fg_path) is False:
+		try:
+			obj = SegmentedObject(bg_path, fg_path)
+		except IOError:
 			print "Error loading images!"
+		return obj
 
 	def compress_object(self):
 		print "compress object"
