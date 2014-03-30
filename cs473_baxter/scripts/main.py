@@ -8,6 +8,7 @@ import baxter_interface
 from basic_poke import BasicMove
 from webcam import Webcam
 from cs473vision.cs473vision.obj_detect import SegmentedObject
+from cs473vision.cs473vision.obj_detect import check_fit
 
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
 
@@ -55,11 +56,15 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 
 	# Extract object from background
-	bf.extract_object_from_bg()
+	obj = bf.extract_object_from_bg()
+	box = bf.extract_object_from_bg()
 
 	# Calculate pixel dimensions of object
-
+	__, __, obj_width, obj_height = obj.get_object_rectangle()
+	__, __, box_width, box_height = box.get_object_rectangle()
+	
 	# Compare pixel dimensions with that of box
+	obj_fits = check_fit(obj_width, obj_height, box_width, box_height)
 
 	# Compress object
 	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
