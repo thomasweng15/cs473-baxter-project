@@ -7,8 +7,7 @@ import baxter_interface
 
 from basic_poke import BasicMove
 from webcam import Webcam
-from cs473vision.cs473vision.obj_detect import SegmentedObject
-from cs473vision.cs473vision.obj_detect import check_fit
+from cs473vision.cs473vision.obj_baxter import BaxterObject
 
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
 
@@ -54,25 +53,38 @@ def main():
 	# Initializations
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
+	
+	bg_path = os.path.join(IMG_DIR, "background.jpg")
+	box_path = os.path.join(IMG_DIR, "box.jpg")
+	arm_path = os.path.join(IMG_DIR, "arm.jpg")
+	obj_path = os.path.join(IMG_DIR, "uncompressed_object.jpg")
+	compress_path = os.path.join(IMG_DIR, "compressed_object.jpg")
+
+	# Take bacgkround images
+	bg._camera.take_reference_snapshot()
 
 	# Extract object from background
-	obj = bf.extract_object_from_bg()
-	box = bf.extract_object_from_bg()
+	bg._camera.take_uncompressed_snapshot()
+	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
 
 	# Calculate pixel dimensions of object
-	__, __, obj_width, obj_height = obj.get_object_rectangle()
-	__, __, box_width, box_height = box.get_object_rectangle()
+	u_w, u_h = baxter_obj.get_uncompressed_size()
 	
 	# Compare pixel dimensions with that of box
-	obj_fits = check_fit(obj_width, obj_height, box_width, box_height)
+	fits = baxter_obj.check_uncompressed_fit()
 
 	# Compress object
 	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
+	bg._camera.take_compressed_snapshot()
+	baxter_obj.set_arm_image(arm_path)
+	baxter_obj.set_compressed_image(compress_path)
 
 	# Measure compression to evaluate new pixel dimensions
+	c_w, c_h = baxter_obj.get_compressed_size()
+	fits = baxter_obj.check_compressed_fit()
 
 	# Return final answer
-
+	print fits
 
 if __name__ == '__main__':
 	main()
