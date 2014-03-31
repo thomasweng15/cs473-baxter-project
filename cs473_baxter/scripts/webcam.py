@@ -59,11 +59,11 @@ class Webcam():
 		
 	def take_uncompressed_snapshot(self):
 		print "Place object alone in center. Press SPACE when finished."
-		self.take_snapshot("object.jpg")
+		self.take_snapshot("uncompressed_object.jpg")
 		
 	def take_compressed_snapshot(self):
 		print "Compress object with arm. Press SPACE when finished."
-		self.take_snapshot("object.jpg")
+		self.take_snapshot("compressed_object.jpg")
 
 def main():
 	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"
