@@ -48,25 +48,25 @@ class Webcam():
 	def take_reference_snapshot(self):
 		print "Taking snapshot of background."
 		val, frame = self.capture.read()
-		cv2.imwrite(os.path.join(self.img_dir, "background.jpg"), frame)
+		cv2.imwrite(os.path.join(self.img_dir, "background.png"), frame)
 		print "Image saved."
 		
 		# Use hard-coded box dimensions for now
 		#print "Place box in center. Press SPACE when finished."
-		#self.take_snapshot("box.jpg")
+		#self.take_snapshot("box.png")
 		
 		# TODO automate the moving of the arm
 		print "Remove box and move arm into view. Press SPACE when finished."
-		self.take_snapshot("arm.jpg")
+		self.take_snapshot("arm.png")
 		
 	def take_uncompressed_snapshot(self):
 		print "Place object alone in center. Press SPACE when finished."
-		self.take_snapshot("uncompressed_object.jpg")
+		self.take_snapshot("uncompressed_object.png")
 		
 	def take_compressed_snapshot(self):
 		# TODO take multiple images over time as compression occurs
 		print "Compress object with arm. Press SPACE when finished."
-		self.take_snapshot("compressed_object.jpg")
+		self.take_snapshot("compressed_object.png")
 
 def main():
 	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"

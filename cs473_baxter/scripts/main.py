@@ -30,8 +30,8 @@ class BoxFit():
 	def extract_object_from_bg(self):
 		self._camera.take_snapshots()
 
-		bg_path = os.path.join(IMG_DIR, "background.jpg")
-		fg_path = os.path.join(IMG_DIR, "foreground.jpg")
+		bg_path = os.path.join(IMG_DIR, "background.png")
+		fg_path = os.path.join(IMG_DIR, "foreground.png")
 		try:
 			obj = SegmentedObject(bg_path, fg_path)
 		except IOError:
@@ -54,12 +54,12 @@ def main():
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
 	
-	bg_path = os.path.join(IMG_DIR, "background.jpg")
+	bg_path = os.path.join(IMG_DIR, "background.png")
 	box_path = None
-	#box_path = os.path.join(IMG_DIR, "box.jpg")
-	arm_path = os.path.join(IMG_DIR, "arm.jpg")
-	obj_path = os.path.join(IMG_DIR, "uncompressed_object.jpg")
-	compress_path = os.path.join(IMG_DIR, "compressed_object.jpg")
+	#box_path = os.path.join(IMG_DIR, "box.png")
+	arm_path = os.path.join(IMG_DIR, "arm.png")
+	obj_path = os.path.join(IMG_DIR, "uncompressed_object.png")
+	compress_path = os.path.join(IMG_DIR, "compressed_object.png")
 
 	# Take background images
 	bf._camera.take_reference_snapshot()
