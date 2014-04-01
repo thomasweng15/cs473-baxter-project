@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import time
 
 import sys
 
@@ -22,23 +23,16 @@ class BoxFit():
 		print "Enabling robot..."
 		self._rs.enable()
 		print "Running. Ctrl-c to quit"
-		print "\nIf Baxter is not gripping the gripper shield,"
-		print "please terminate this instance and attach the shield by running glove.py."
 
 		self.bm = BasicMove('right')
 
-		self._camera = Webcam(img_dir)
+		self.img_dir = self._create_img_dir(img_dir)
+		self._camera = Webcam(self.img_dir)
 
-	def extract_object_from_bg(self):
-		self._camera.take_snapshots()
-
-		bg_path = os.path.join(IMG_DIR, "background.png")
-		fg_path = os.path.join(IMG_DIR, "foreground.png")
-		try:
-			obj = SegmentedObject(bg_path, fg_path)
-		except IOError:
-			print "Error loading images!"
-		return obj
+	def _create_img_dir(self, img_dir):
+		dirname = ''.join([img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
+		os.mkdir(dirname)
+		return dirname
 
 	def is_glove_attached(self):
 		# Verify glove is attached
@@ -64,12 +58,12 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 	bf.is_glove_attached()
 	
-	bg_path = os.path.join(IMG_DIR, "background.png")
+	bg_path = os.path.join(bf.img_dir, "background.png")
 	box_path = None
 	#box_path = os.path.join(IMG_DIR, "box.png")
-	arm_path = os.path.join(IMG_DIR, "arm.png")
-	obj_path = os.path.join(IMG_DIR, "uncompressed_object.png")
-	compress_path = os.path.join(IMG_DIR, "compressed_object.png")
+	arm_path = os.path.join(bf.img_dir, "arm.png")
+	obj_path = os.path.join(bf.img_dir, "uncompressed_object.png")
+	compress_path = os.path.join(bf.img_dir, "compressed_object.png")
 
 	# Take background images
 	bf._camera.take_reference_snapshot()
