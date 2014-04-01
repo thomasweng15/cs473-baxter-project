@@ -55,16 +55,17 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 	
 	bg_path = os.path.join(IMG_DIR, "background.jpg")
-	box_path = os.path.join(IMG_DIR, "box.jpg")
+	box_path = None
+	#box_path = os.path.join(IMG_DIR, "box.jpg")
 	arm_path = os.path.join(IMG_DIR, "arm.jpg")
 	obj_path = os.path.join(IMG_DIR, "uncompressed_object.jpg")
 	compress_path = os.path.join(IMG_DIR, "compressed_object.jpg")
 
-	# Take bacgkround images
-	bg._camera.take_reference_snapshot()
+	# Take background images
+	bf._camera.take_reference_snapshot()
 
 	# Extract object from background
-	bg._camera.take_uncompressed_snapshot()
+	bf._camera.take_uncompressed_snapshot()
 	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
 
 	# Calculate pixel dimensions of object
@@ -75,7 +76,7 @@ def main():
 
 	# Compress object
 	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
-	bg._camera.take_compressed_snapshot()
+	bf._camera.take_compressed_snapshot()
 	baxter_obj.set_arm_image(arm_path)
 	baxter_obj.set_compressed_image(compress_path)
 

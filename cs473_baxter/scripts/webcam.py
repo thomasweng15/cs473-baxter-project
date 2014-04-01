@@ -39,7 +39,7 @@ class Webcam():
 			if key == ord('q'):
 				print "Taking snapshot cancelled."
 				break
-			else if key == ord(' '):
+			elif key == ord(' '):
 				print "Taking snapshot..."
 				cv2.imwrite(os.path.join(self.img_dir, file_name), frame)
 				print "Image saved."
@@ -51,9 +51,11 @@ class Webcam():
 		cv2.imwrite(os.path.join(self.img_dir, "background.jpg"), frame)
 		print "Image saved."
 		
-		print "Place box in center. Press SPACE when finished."
-		self.take_snapshot("box.jpg")
+		# Use hard-coded box dimensions for now
+		#print "Place box in center. Press SPACE when finished."
+		#self.take_snapshot("box.jpg")
 		
+		# TODO automate the moving of the arm
 		print "Remove box and move arm into view. Press SPACE when finished."
 		self.take_snapshot("arm.jpg")
 		
@@ -62,16 +64,17 @@ class Webcam():
 		self.take_snapshot("uncompressed_object.jpg")
 		
 	def take_compressed_snapshot(self):
+		# TODO take multiple images over time as compression occurs
 		print "Compress object with arm. Press SPACE when finished."
 		self.take_snapshot("compressed_object.jpg")
 
 def main():
 	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"
 	w = Webcam(img_dir)
-	w.show_video_stream()
-	time.sleep(10)
-	w.take_snapshots()
+	w.take_snapshot("no_arm.png")
+	w.take_snapshot("arm.png")
 
 
 if __name__ == '__main__':
 	main()
+
