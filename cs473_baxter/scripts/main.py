@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 
+import sys
+
 import rospy
 
 import baxter_interface
@@ -38,6 +40,13 @@ class BoxFit():
 			print "Error loading images!"
 		return obj
 
+	def is_glove_attached(self):
+		# Verify glove is attached
+		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
+		if glove_on is not "y":
+			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
+			sys.exit(1)
+
 	def compress_object(self):
 		print "compress object"
 
@@ -53,6 +62,7 @@ def main():
 	# Initializations
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
+	bf.is_glove_attached()
 	
 	bg_path = os.path.join(IMG_DIR, "background.png")
 	box_path = None
