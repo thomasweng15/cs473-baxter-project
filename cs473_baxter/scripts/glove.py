@@ -29,14 +29,9 @@ class Glove():
 		self.gripper.close()
 
 	def release_glove(self):
-		self.gripper.calibrate()
 		self.gripper.open()
-
-	def clean_shutdown(self):
-		print "\nExiting glove routine..."
-		if not self._init_state and self._rs.state().enabled:
-			print "Disabling robot..."
-			self._rs.disable()
+		print "If Baxter does not release, you may need to run this script again."
+		print "If you see an error, you will have to manually remove the glove."
 
 
 def main():
@@ -50,8 +45,6 @@ def main():
 	args = parser.parse_args(rospy.myargv()[1:])
 
 	g = Glove('right')
-
-	rospy.on_shutdown(g.clean_shutdown)
 
 	if args.grip == 'grip':
 		g.grip_glove()
