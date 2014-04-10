@@ -40,6 +40,8 @@ from std_msgs.msg import (
 
 import baxter_interface
 
+from basic_poke import BasicMove
+
 
 class JointVelocity(object):
 
@@ -69,42 +71,20 @@ class JointVelocity(object):
         print("\nExiting example...")
         #return to normal
         self._reset_control_modes()
-        self._right_arm.move_to_neutral()
+        #self._right_arm.move_to_neutral()
         return True
 
     def move(self):
-        self._right_arm.move_to_neutral()
-
-        rate = rospy.Rate(100)
+        rate = rospy.Rate(100) # in Hz
         start = rospy.Time.now()
 
-        def make_v_func():
-            """
-            returns a randomly parameterized cosine function to control a
-            specific joint.
-            """
-            period_factor = random.uniform(0.3, 0.5)
-            amplitude_factor = random.uniform(0.1, 0.2)
-
-            def v_func(elapsed):
-                w = period_factor * elapsed.to_sec()
-                return amplitude_factor * math.cos(w * 2 * math.pi)
-            return v_func
-
-        v_funcs = [make_v_func() for _ in self._right_joint_names]
-
-        def make_cmd(joint_names, elapsed):
-            return dict([(joint, v_funcs[i](elapsed))
-                         for i, joint in enumerate(joint_names)])
-
-        print("Wobbling. Press Ctrl-C to stop...")
-
         elapsed = rospy.Time.now() - start
-        while elapsed < genpy.rostime.Duration(5):
-            self._pub_rate.publish(100)
-            elapsed = rospy.Time.now() - start
-            cmd = {'right_w0': -0.8, 'right_w2': -0.13}
+        while elapsed < genpy.rostime.Duration(2): # in secs
+            self._pub_rate.publish(100) # in Hz
+            cmd = {'right_s1': -5, 'right_e1':-20, 'right_w1':-40}
             self._right_arm.set_joint_velocities(cmd)
+            #print self._right_arm.endpoint_effort()
+            elapsed = rospy.Time.now() - start
             rate.sleep()
 
 
@@ -117,9 +97,13 @@ def main():
     print("Initializing node... ")
     rospy.init_node("rsdk_joint_velocity")
 
+    bm = BasicMove('right')
+    bm.move_to_jp(bm.get_jp_from_file())
+
     joint_velocity = JointVelocity()
     rospy.on_shutdown(joint_velocity.clean_shutdown)
     joint_velocity.move()
+    bm.move_to_jp(bm.get_jp_from_file())
 
     print("Done.")
 

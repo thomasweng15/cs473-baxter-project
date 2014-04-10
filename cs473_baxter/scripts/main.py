@@ -64,8 +64,8 @@ def main():
 	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
 	#bf.jv.move()
 
-	"""
-	bg_path = os.path.join(bf.img_dir, "background.png")
+	
+	"""bg_path = os.path.join(bf.img_dir, "background.png")
 	box_path = None
 	#box_path = os.path.join(IMG_DIR, "box.png")
 	arm_path = os.path.join(bf.img_dir, "arm.png")
@@ -96,8 +96,8 @@ def main():
 	fits = baxter_obj.check_compressed_fit()
 
 	# Return final answer
-	print fits
-	"""
+	print fits"""
+	
 
 if __name__ == '__main__':
 	main()
