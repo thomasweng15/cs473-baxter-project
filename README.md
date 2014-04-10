@@ -20,4 +20,11 @@ https://github.com/RethinkRobotics/sdk-docs/wiki/Development-Workstation-Setup-I
 Follow the instructions in the README.md to install the Gazebo simulator:
 https://github.com/RethinkRobotics/baxter_simulator
 
+TODO
+----
+Combine joint velocity and basic_poke scripts
+Set new initial joint position
+Set velocity/torque for compression
+Set other arm's initial joint position
+Access other arm's camera
 
