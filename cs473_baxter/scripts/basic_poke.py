@@ -21,6 +21,8 @@ from baxter_core_msgs.srv import (
     SolvePositionIKRequest,
 )
 
+ARM_POSITIONS = "./../config/arm_positions"
+
 class BasicMove():
 	def __init__(self, limb):
 		self._limb = baxter_interface.limb.Limb(limb) 
@@ -61,18 +63,29 @@ class BasicMove():
 	def move_to_jp(self, position):
 		self._limb.move_to_joint_positions(position) 
 		
-	def get_jp_from_file(self):
+	def get_jp_from_file(self, selector):
 		file_path = os.path.dirname(__file__)
 		if file_path != "":
 			os.chdir(file_path)
-		f = open("./../config/right_arm_default_position","r")
+		f = open(ARM_POSITIONS,"r")
 		
+		found_selector = False
 		jp = {}
 		for line in f:
-			l = line.split(', ')
-			jp[l[0]] = float(l[1].strip('\n'))
+			print line
+			if line.strip('\n') == selector:
+				found_selector = True
+			elif found_selector and line == '\n':
+				break
+			elif found_selector: 
+				l = line.split(', ')
+				jp[l[0]] = float(l[1].strip('\n'))
 
-		return jp
+		if found_selector == False:
+			print "Error: selector in '" + ARM_POSITIONS + "' was not found."
+			return {}
+		else:
+			return jp
 
 
 def main():
