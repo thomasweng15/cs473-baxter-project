@@ -30,7 +30,7 @@ class Webcam():
 			if key == ord('q'):
 				break
 			
-	def take_snapshot(self, file_name):
+	def take_snapshot(self, file_name, num=1, delay=0.5):
 		while True:
 			val, frame = self.capture.read()
 			cv2.imshow("input", frame)
@@ -41,8 +41,15 @@ class Webcam():
 				break
 			elif key == ord(' '):
 				print "Taking snapshot..."
-				cv2.imwrite(os.path.join(self.img_dir, file_name), frame)
-				print "Image saved."
+				for __ in range(num):
+					cur_name = file_name
+					if num > 1:
+						file_split = os.path.splitext(file_name)
+						cur_name = file_split[0] + str(num) + file_split[1]	
+					cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
+					time.sleep(delay)
+					print "Image saved. ",
+				print
 				break
 
 	def take_reference_snapshot(self):
@@ -65,8 +72,8 @@ class Webcam():
 		
 	def take_compressed_snapshot(self):
 		# TODO take multiple images over time as compression occurs
-		print "Compress object with arm. Press SPACE when finished."
-		self.take_snapshot("compressed_object.png")
+		print "Prepare to press object with arm. Press SPACE when to start taking pictures."
+		self.take_snapshot("compressed_object.png", num=10)
 
 def main():
 	img_dir = "./src/cs473-baxter-project/cs473_baxter/images/"
