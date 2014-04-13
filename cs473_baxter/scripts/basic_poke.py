@@ -60,9 +60,13 @@ class BasicMove():
 		else:
 			return False
 
-	def move_to_jp(self, position):
-		self._limb.move_to_joint_positions(position) 
-		
+	def move_to_jp(self, position, timeout=7):
+		try:
+			self._limb.move_to_joint_positions(position, timeout)
+			return True
+		except Exception:
+			return False
+
 	def get_jp_from_file(self, selector):
 		file_path = os.path.dirname(__file__)
 		if file_path != "":
@@ -72,7 +76,6 @@ class BasicMove():
 		found_selector = False
 		jp = {}
 		for line in f:
-			print line
 			if line.strip('\n') == selector:
 				found_selector = True
 			elif found_selector and line == '\n':
