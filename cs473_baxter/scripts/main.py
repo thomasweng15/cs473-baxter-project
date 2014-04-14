@@ -9,7 +9,7 @@ import rospy
 
 import baxter_interface
 
-from basic_poke import BasicMove
+from position_control import PositionControl
 from webcam import Webcam
 from cs473vision.cs473vision.obj_baxter import BaxterObject
 
@@ -25,7 +25,7 @@ class BoxFit():
 		self._rs.enable()
 		print "Running. Ctrl-c to quit"
 
-		self.bm = BasicMove('right')
+		self.ps = PositionControl('right')
 
 		self.img_dir = self._create_img_dir(img_dir)
 		self._camera = Webcam(self.img_dir)
@@ -42,27 +42,20 @@ class BoxFit():
 			sys.exit(1)
 
 	def set_init_joint_positions(self):
-		self.bm.set_neutral()
-		self.bm.move_to_jp(self.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
-
+		self.ps.set_neutral()
+		#self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+		
 	def compress_object(self):
-   		#vision = Process(target=self._camera.take_automatic_snapshot, args=('compression',))
-   		#compress = Process(target=self.bm.move_to_jp(
-   		#				self.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
-   		#				timeout=4))
-   		
 		self._camera.capture.release()
 
-		subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
+		proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
 					"-d", self.img_dir, 
 					"-f", "compression"])
-   		self.bm.move_to_jp(
-   						self.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
-   						timeout=4, speed=0.05)
+   		self.ps.move_to_jp(
+   					self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
+   					timeout=4, speed=0.05)
    		
-
-   		self.bm.move_to_jp(self.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
-
+   		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
 	def clean_shutdown(self):
 		print "\nExiting box fit routine..."
@@ -78,7 +71,7 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 	bf.is_glove_attached()
 	
-	bf.set_init_joint_positions()
+	#bf.set_init_joint_positions()
 	bf.compress_object()
 
 	

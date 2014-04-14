@@ -22,7 +22,6 @@ https://github.com/RethinkRobotics/baxter_simulator
 
 TODO
 ----
-Rename basic_poke.py
 Clean up main
 Add loop to main to allow compression of multiple objects, multiple trials
 Set other arm's initial joint position and access other arm's camera

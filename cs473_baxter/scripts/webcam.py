@@ -63,9 +63,8 @@ class Webcam():
 
  			cur_name = filename + str(num) + ".png"
  			num += 1
- 			print os.path.join(self.img_dir, cur_name)
  			cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
- 			print cur_name + " saved."
+ 			print cur_name + " saved."	
  			rate.sleep()
  			elapsed = rospy.Time.now() - start
 
@@ -107,6 +106,7 @@ def main():
 		args.filename = "TEST"
 
 	rospy.init_node("webcam")
+	
 	w = Webcam(args.directory)
 	w.take_automatic_snapshot(args.filename)
 
