@@ -2,7 +2,6 @@
 import os
 import time
 import subprocess
-
 import sys
 
 import rospy
@@ -16,7 +15,13 @@ from cs473vision.cs473vision.obj_baxter import BaxterObject
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
 
 class BoxFit():
+	"""The primary module for running compression trials.
+	Links the webcam, vision segmentation, and actuation
+	modules together.
+	"""
 	def __init__(self, img_dir):
+		rospy.init_node("cs473_box_fit")
+
 		# Verify robot is enabled
 		print "Getting robot state..."
 		self._rs = baxter_interface.RobotEnable()
@@ -31,26 +36,39 @@ class BoxFit():
 		self._camera = Webcam(self.img_dir)
 
 	def _create_img_dir(self, img_dir):
+		"""Creates a timestamped folder in the img_dir directory
+		that stores the images of one compression run.
+
+		params:
+			img_dir 	base directory in which to create the folder. 
+		"""
 		dirname = ''.join([img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
 		os.mkdir(dirname)
 		return dirname
 
 	def is_glove_attached(self):
+		"""Prompt the user to check if Baxter's pusher glove
+		is attached or not. Exit the process if it is not. 
+		"""
 		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
 		if glove_on is not "y":
 			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
 			sys.exit(1)
 
 	def set_init_joint_positions(self):
+		"""Move arm(s) to initial joint positions."""
 		self.ps.set_neutral()
 		#self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 		
-	def compress_object(self):
+	def compress_object(self, filename="compression"):
+		"""Compress an object while opening the webcam to take 
+		snapshots during the compression. 
+		"""
 		self._camera.capture.release()
 
 		proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
 					"-d", self.img_dir, 
-					"-f", "compression"])
+					"-f", filename])
    		self.ps.move_to_jp(
    					self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
    					timeout=4, speed=0.05)
@@ -64,9 +82,8 @@ class BoxFit():
 			self._rs.disable()
 
 def main():
-	rospy.init_node("cs473_box_fit")
-
-	# Initializations
+	"""
+	"""
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
 	bf.is_glove_attached()
@@ -83,9 +100,11 @@ def main():
 	compress_path = os.path.join(bf.img_dir, "compressed_object.png")
 
 	# Take background images
+	print "Taking snapshot of background."
 	bf._camera.take_reference_snapshot()
 
 	# Extract object from background
+	print "Place object alone in center. Press SPACE when finished."
 	bf._camera.take_uncompressed_snapshot()
 	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
 
