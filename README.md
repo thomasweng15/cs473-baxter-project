@@ -20,4 +20,11 @@ https://github.com/RethinkRobotics/sdk-docs/wiki/Development-Workstation-Setup-I
 Follow the instructions in the README.md to install the Gazebo simulator:
 https://github.com/RethinkRobotics/baxter_simulator
 
+TODO
+----
+Rename basic_poke.py
+Clean up main
+Set other arm's initial joint position and access other arm's camera
+Turn IMG_DIR into a line in the config file
+Turn initial arm configurations into XML format
 

@@ -35,7 +35,6 @@ class BoxFit():
 		return dirname
 
 	def is_glove_attached(self):
-		# Verify glove is attached
 		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
 		if glove_on is not "y":
 			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
@@ -58,7 +57,13 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 	bf.is_glove_attached()
 	
-	bg_path = os.path.join(bf.img_dir, "background.png")
+	bf.bm.set_neutral()
+	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'))
+   	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+
+	
+	"""bg_path = os.path.join(bf.img_dir, "background.png")
 	box_path = None
 	#box_path = os.path.join(IMG_DIR, "box.png")
 	arm_path = os.path.join(bf.img_dir, "arm.png")
@@ -89,7 +94,8 @@ def main():
 	fits = baxter_obj.check_compressed_fit()
 
 	# Return final answer
-	print fits
+	print fits"""
+	
 
 if __name__ == '__main__':
 	main()
