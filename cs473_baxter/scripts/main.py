@@ -10,7 +10,6 @@ import baxter_interface
 
 from basic_poke import BasicMove
 from webcam import Webcam
-from joint_velocity import JointVelocity
 from cs473vision.cs473vision.obj_baxter import BaxterObject
 
 IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
@@ -26,7 +25,6 @@ class BoxFit():
 		print "Running. Ctrl-c to quit"
 
 		self.bm = BasicMove('right')
-		self.jv = JointVelocity()
 
 		self.img_dir = self._create_img_dir(img_dir)
 		self._camera = Webcam(self.img_dir)
@@ -37,7 +35,6 @@ class BoxFit():
 		return dirname
 
 	def is_glove_attached(self):
-		# Verify glove is attached
 		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
 		if glove_on is not "y":
 			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
@@ -61,8 +58,9 @@ def main():
 	bf.is_glove_attached()
 	
 	bf.bm.set_neutral()
-	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
-	#bf.jv.move()
+	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'))
+   	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
 	
 	"""bg_path = os.path.join(bf.img_dir, "background.png")

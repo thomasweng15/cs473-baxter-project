@@ -22,9 +22,9 @@ https://github.com/RethinkRobotics/baxter_simulator
 
 TODO
 ----
-Combine joint velocity and basic_poke scripts
-Set new initial joint position
-Set velocity/torque for compression
-Set other arm's initial joint position
-Access other arm's camera
+Rename basic_poke.py
+Clean up main
+Set other arm's initial joint position and access other arm's camera
+Turn IMG_DIR into a line in the config file
+Turn initial arm configurations into XML format
 
