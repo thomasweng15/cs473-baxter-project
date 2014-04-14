@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import time
+import subprocess
 
 import sys
 
@@ -40,8 +41,28 @@ class BoxFit():
 			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
 			sys.exit(1)
 
+	def set_init_joint_positions(self):
+		self.bm.set_neutral()
+		self.bm.move_to_jp(self.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+
 	def compress_object(self):
-		print "compress object"
+   		#vision = Process(target=self._camera.take_automatic_snapshot, args=('compression',))
+   		#compress = Process(target=self.bm.move_to_jp(
+   		#				self.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
+   		#				timeout=4))
+   		
+		self._camera.capture.release()
+
+		subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
+					"-d", self.img_dir, 
+					"-f", "compression"])
+   		self.bm.move_to_jp(
+   						self.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
+   						timeout=4, speed=0.05)
+   		
+
+   		self.bm.move_to_jp(self.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+
 
 	def clean_shutdown(self):
 		print "\nExiting box fit routine..."
@@ -57,10 +78,8 @@ def main():
 	rospy.on_shutdown(bf.clean_shutdown)
 	bf.is_glove_attached()
 	
-	bf.bm.set_neutral()
-	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
-	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'))
-   	bf.bm.move_to_jp(bf.bm.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+	bf.set_init_joint_positions()
+	bf.compress_object()
 
 	
 	"""bg_path = os.path.join(bf.img_dir, "background.png")

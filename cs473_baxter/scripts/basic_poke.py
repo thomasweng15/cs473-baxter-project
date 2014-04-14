@@ -60,12 +60,16 @@ class BasicMove():
 		else:
 			return False
 
-	def move_to_jp(self, position, timeout=7):
+	def move_to_jp(self, position, timeout=7, speed=0.3):
+		if speed != 0.3:
+			self._limb.set_joint_position_speed(speed)
+
 		try:
 			self._limb.move_to_joint_positions(position, timeout)
-			return True
 		except Exception:
-			return False
+			print "Warning: did not reach commanded joint position"
+
+		self._limb.set_joint_position_speed(0.3)
 
 	def get_jp_from_file(self, selector):
 		file_path = os.path.dirname(__file__)
