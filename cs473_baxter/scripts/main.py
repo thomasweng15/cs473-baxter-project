@@ -3,6 +3,7 @@ import os
 import time
 import subprocess
 import sys
+import ConfigParser
 
 import rospy
 
@@ -12,15 +13,17 @@ from position_control import PositionControl
 from webcam import Webcam
 from cs473vision.cs473vision.obj_baxter import BaxterObject
 
-IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
+CONFIG = "./src/cs473-baxter-project/cs473_baxter/images/"
 
 class BoxFit():
 	"""The primary module for running compression trials.
 	Links the webcam, vision segmentation, and actuation
 	modules together.
 	"""
-	def __init__(self, img_dir):
+	def __init__(self):
 		rospy.init_node("cs473_box_fit")
+
+		self.is_glove_attached()
 
 		# Verify robot is enabled
 		print "Getting robot state..."
@@ -32,7 +35,7 @@ class BoxFit():
 
 		self.ps = PositionControl('right')
 
-		self.img_dir = self._create_img_dir(img_dir)
+		self.img_dir = self._create_img_dir()
 		self._camera = Webcam(self.img_dir)
 
 	def _create_img_dir(self, img_dir):
@@ -42,9 +45,12 @@ class BoxFit():
 		params:
 			img_dir 	base directory in which to create the folder. 
 		"""
-		dirname = ''.join([img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
-		os.mkdir(dirname)
-		return dirname
+		Config = ConfigParser.ConfigParser()
+		Config.read(CONFIG)
+		base_img_dir = Config.get("IMAGE_DIRECTORY", "base_img_dir")
+		img_dir = ''.join([base_img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
+		os.mkdir(img_dir)
+		return img_dir
 
 	def is_glove_attached(self):
 		"""Prompt the user to check if Baxter's pusher glove
@@ -100,9 +106,8 @@ class BoxFit():
 def main():
 	"""
 	"""
-	bf = BoxFit(IMG_DIR)
+	bf = BoxFit()
 	rospy.on_shutdown(bf.clean_shutdown)
-	bf.is_glove_attached()
 	
 	bf.set_init_joint_positions()
 	bf.compress_object()
