@@ -118,15 +118,23 @@ def main():
 		'-d', '--dir', dest='directory', required=False,
 		help="the directory to save to"
 	)
+	parser.add_argument(
+		'-t', '--time', dest='time', required=False,
+		help="how long to take snapshots"
+	)
 	args = parser.parse_args(rospy.myargv()[1:])
 
 	if args.directory is None:
 		args.directory = '.'
+	if args.time is None:
+		args.time = 8
+	else:
+		args.time = int(args.time)
 
 	rospy.init_node("webcam")
 
 	w = Webcam(args.directory)
-	w.take_automatic_snapshot("compression")
+	w.take_automatic_snapshot("compression", time=args.time)
 
 
 if __name__ == '__main__':

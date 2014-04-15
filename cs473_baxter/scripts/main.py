@@ -61,25 +61,21 @@ class BoxFit():
 	def set_init_joint_positions(self):
 		"""Move arm(s) to initial joint positions."""
 		self.ps.set_neutral()
-		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 		
 	def take_background_snapshot(self):
 		print "Taking snapshot of background."
 		self._camera.take_snapshot('background')
-
-	def take_uncompressed_snapshot(self):
-		raw_input = ("Place object alone in center. Press any key when finished.")
-		self._camera.take_snapshot('uncompressed_object')
 
 	def compress_object(self, filename="compression"):
 		"""Compress an object while opening the webcam to take 
 		snapshots during the compression. 
 		"""
 		self._camera.capture.release()
+		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
 		# Suppress collision detection and contact safety 
 		contact_safety_proc = subprocess.Popen(['rostopic', 'pub', 
-			'-r', 10, 
+			'-r', '10', 
 			'/robot/limb/right/suppress_contact_safety', 
 			'std_msgs/Empty'])
 
@@ -88,7 +84,8 @@ class BoxFit():
 		
 		time_data.write('webcam: ' + str(rospy.Time.now().nsecs) + '\n')
 		w_proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
-			"-d", self.img_dir])
+			"-d", self.img_dir, 
+			"-t", "12"])
 		
 		time.sleep(2) # Buffer time for webcam subprocess to get ready
 
@@ -100,7 +97,9 @@ class BoxFit():
 		time_data.write('compress: ' + str(rospy.Time.now().nsecs) + '\n')
    		self.ps.move_to_jp(
    			self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
-   			timeout=5, speed=0.05)
+   			timeout=10, speed=0.05)
+
+   		time.sleep(1.5)
    		
 		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
@@ -118,14 +117,14 @@ class BoxFit():
 def main():
 	"""
 	"""
-	BoxFit = BoxFit()
-	rospy.on_shutdown(bf.clean_shutdown)
-	BoxFit.take_background_snapshot()
-	
-	BoxFit.take_uncompressed_snapshot()
+	BF = BoxFit()
+	rospy.on_shutdown(BF.clean_shutdown)
+	BF.set_init_joint_positions()
+	BF.take_background_snapshot()
 
-	BoxFit.set_init_joint_positions()
-	BoxFit.compress_object()
+	user_input = raw_input("Place object alone in center. Press any key when finished.")
+
+	BF.compress_object()
 
 	"""
 
