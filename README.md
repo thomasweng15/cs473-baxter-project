@@ -30,4 +30,5 @@ Turn initial arm configurations into XML format
 
 force compliance?
 felt bottom to glove?
+append zeros to number stuff
 

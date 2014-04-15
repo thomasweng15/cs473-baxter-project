@@ -55,3 +55,4 @@ srv_gen
 *.png
 timestamps.txt
 rostopic_data.txt
+webcam_data.txt

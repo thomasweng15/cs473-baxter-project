@@ -11,8 +11,13 @@ import rospy
 import genpy
 
 class Webcam():
-	def __init__(self, img_dir):
-		self.device = 0 # assume we want first device
+	"""Provides an interface to open an image capture device
+	to take both manual and automatic snapshots. 
+	"""
+	def __init__(self, img_dir, device=0):
+		
+
+		self.device = device 
 		print "Opening capture device..."
 		self.capture = cv2.VideoCapture(self.device)
 		self.capture.set(3,960) # CV_CAP_PROP_FRAME_WIDTH  
@@ -24,6 +29,10 @@ class Webcam():
 			sys.exit(1)
 
 	def show_video_stream(self):
+		"""Show a video feed from the webcam. 
+		
+		Quit when the 'q' key is pressed. 
+		"""
 		while True:
 			val, frame = self.capture.read()
 			cv2.imshow("input", frame)
@@ -32,7 +41,17 @@ class Webcam():
 			if key == ord('q'):
 				break
 			
-	def take_manual_snapshot(self, file_name, num=1, delay=0.5):
+	def take_manual_snapshot(self, filename, num=1, delay=0.5):
+		"""Show a video feed from the webcam,
+		taking a snapshot when SPACE is pressed. 
+		
+		params:
+			filename 	base name with which to save snapshots. 
+			num			max number of snapshots to take.
+			delay		minimum # of seconds to wait between snapshots.
+
+		Quit when the 'q' key is pressed. 
+		"""
 		while True:
 			val, frame = self.capture.read()
 			cv2.imshow("input", frame)
@@ -44,49 +63,56 @@ class Webcam():
 			elif key == ord(' '):
 				print "Taking snapshot..."
 				for __ in range(num):
-					cur_name = file_name
+					cur_name = filename
 					if num > 1:
-						file_split = os.path.splitext(file_name)
+						file_split = os.path.splitext(filename)
 						cur_name = file_split[0] + str(num) + file_split[1]	
 					cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
 					time.sleep(delay)
 					print "Image saved."
 				break
 
- 	def take_automatic_snapshot(self, filename, time=5, delay=200):
+ 	def take_automatic_snapshot(self, filename, time=8, delay=200):
+ 		"""Automatically take snapshots from the webcam. 
+		
+		params:
+			filename 	base name with which to save snapshots. 
+			time		time in seconds in which to take snapshots. 
+			delay		interval in ms between snapshots. 
+		"""
  		rate = rospy.Rate(delay)
+ 		num = 0
  		start = rospy.Time.now()
  		elapsed = rospy.Time.now() - start
- 		num = 0
+
+ 		time_data = open(os.path.join(self.img_dir, "webcam_data.txt"), 'a+')
+		time_data.write("webcam start: " + str(start.nsecs) + '\n')
+			
  		while elapsed < genpy.rostime.Duration(time):
  			val, frame = self.capture.read()
 
  			cur_name = filename + str(num) + ".png"
  			num += 1
  			cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
- 			print cur_name + " saved."	
+ 			time_data.write(str(num) + ": " + str(rospy.Time.now().nsecs) + '\n')	
  			rate.sleep()
  			elapsed = rospy.Time.now() - start
 
-	def take_reference_snapshot(self):
-		print "Taking snapshot of background."
+ 		time_data.close()
+
+	def take_snapshot(self, filename):
+		"""Take one snapshot from the webcam.
+
+		params:
+			filename 	base name with which to save snapshots. 
+		"""
 		val, frame = self.capture.read()
 		cv2.imwrite(os.path.join(self.img_dir, "background.png"), frame)
 		print "Image saved."
 		
-		# Use hard-coded box dimensions for now
-		#print "Place box in center. Press SPACE when finished."
-		#self.take_snapshot("box.png")
-		
-		# TODO automate the moving of the arm
-		print "Remove box and move arm into view. Press SPACE when finished."
-		self.take_manual_snapshot("arm.png")
-		
-	def take_uncompressed_snapshot(self):
-		print "Place object alone in center. Press SPACE when finished."
-		self.take_manual_snapshot("uncompressed_object.png")
-		
 def main():
+	"""
+	"""
 	arg_fmt = argparse.RawDescriptionHelpFormatter
 	parser = argparse.ArgumentParser(formatter_class=arg_fmt,
 									description=main.__doc__)
@@ -94,25 +120,15 @@ def main():
 		'-d', '--dir', dest='directory', required=False,
 		help="the directory to save to"
 	)
-	parser.add_argument(
-		'-f', '--file', dest='filename', required=False,
-		help="the base filename to save to"
-	)
-	parser.add_argument(
-		'-s', '--subproc', dest='subprocess', required=False,
-		help="whether or not this module is run as a subprocess"
-	)
 	args = parser.parse_args(rospy.myargv()[1:])
 
 	if args.directory is None:
-		args.directory = "."
-	if args.filename is None:
-		args.filename = "TEST"
+		args.directory = '.'
 
 	rospy.init_node("webcam")
-	
+
 	w = Webcam(args.directory)
-	w.take_automatic_snapshot(args.filename)
+	w.take_automatic_snapshot("compression")
 
 
 if __name__ == '__main__':
