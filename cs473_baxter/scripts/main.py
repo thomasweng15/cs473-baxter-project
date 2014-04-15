@@ -38,6 +38,15 @@ class BoxFit():
 		self.img_dir = self._create_img_dir()
 		self._camera = Webcam(self.img_dir)
 
+	def is_glove_attached(self):
+		"""Prompt the user to check if Baxter's pusher glove
+		is attached or not. Exit the process if it is not. 
+		"""
+		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
+		if glove_on is not "y":
+			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
+			sys.exit(1)
+
 	def _create_img_dir(self):
 		"""Creates a timestamped folder in the img_dir directory
 		that stores the images of one compression run.
@@ -48,48 +57,54 @@ class BoxFit():
 		img_dir = ''.join([base_img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
 		os.mkdir(img_dir)
 		return img_dir
-
-	def is_glove_attached(self):
-		"""Prompt the user to check if Baxter's pusher glove
-		is attached or not. Exit the process if it is not. 
-		"""
-		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
-		if glove_on is not "y":
-			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
-			sys.exit(1)
-
+	
 	def set_init_joint_positions(self):
 		"""Move arm(s) to initial joint positions."""
 		self.ps.set_neutral()
 		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 		
+	def take_background_snapshot(self):
+		print "Taking snapshot of background."
+		self._camera.take_snapshot('background')
+
+	def take_uncompressed_snapshot(self):
+		raw_input = ("Place object alone in center. Press any key when finished.")
+		self._camera.take_snapshot('uncompressed_object')
+
 	def compress_object(self, filename="compression"):
 		"""Compress an object while opening the webcam to take 
 		snapshots during the compression. 
 		"""
 		self._camera.capture.release()
 
+		# Suppress collision detection and contact safety 
+		contact_safety_proc = subprocess.Popen(['rostopic', 'pub', 
+			'-r', 10, 
+			'/robot/limb/right/suppress_contact_safety', 
+			'std_msgs/Empty'])
+
 		time_data = open(os.path.join(self.img_dir, 'timestamps.txt'), 'a+')
 		r_data = open(os.path.join(self.img_dir, 'rostopic_data.txt'), 'a+')
 		
-		time_data.write("webcam: " + str(rospy.Time.now().nsecs) + '\n')
+		time_data.write('webcam: ' + str(rospy.Time.now().nsecs) + '\n')
 		w_proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
 			"-d", self.img_dir])
 		
 		time.sleep(2) # Buffer time for webcam subprocess to get ready
 
-		time_data.write("rostopic: " + str(rospy.Time.now().nsecs) + '\n')
+		time_data.write('rostopic: ' + str(rospy.Time.now().nsecs) + '\n')
 		r_proc = subprocess.Popen(['rostopic', 'echo', 
 			'/robot/limb/right/endpoint_state'], 
 			stdout=r_data) 
 
-		time_data.write("compress: " + str(rospy.Time.now().nsecs) + '\n')
+		time_data.write('compress: ' + str(rospy.Time.now().nsecs) + '\n')
    		self.ps.move_to_jp(
    			self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
    			timeout=5, speed=0.05)
    		
 		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
+		contact_safety_proc.terminate()
    		r_proc.terminate()
    		w_proc.terminate()
    		time_data.close()
@@ -103,27 +118,17 @@ class BoxFit():
 def main():
 	"""
 	"""
-	bf = BoxFit()
+	BoxFit = BoxFit()
 	rospy.on_shutdown(bf.clean_shutdown)
+	BoxFit.take_background_snapshot()
 	
-	bf.set_init_joint_positions()
-	bf.compress_object()
+	BoxFit.take_uncompressed_snapshot()
 
-	
-	"""bg_path = os.path.join(bf.img_dir, "background.png")
-	box_path = None
-	#box_path = os.path.join(IMG_DIR, "box.png")
-	arm_path = os.path.join(bf.img_dir, "arm.png")
-	obj_path = os.path.join(bf.img_dir, "uncompressed_object.png")
-	compress_path = os.path.join(bf.img_dir, "compressed_object.png")
+	BoxFit.set_init_joint_positions()
+	BoxFit.compress_object()
 
-	# Take background images
-	print "Taking snapshot of background."
-	bf._camera.take_reference_snapshot()
+	"""
 
-	# Extract object from background
-	print "Place object alone in center. Press SPACE when finished."
-	bf._camera.take_uncompressed_snapshot()
 	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
 
 	# Calculate pixel dimensions of object
@@ -131,12 +136,6 @@ def main():
 	
 	# Compare pixel dimensions with that of box
 	fits = baxter_obj.check_uncompressed_fit()
-
-	# Compress object
-	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
-	bf._camera.take_compressed_snapshot()
-	baxter_obj.set_arm_image(arm_path)
-	baxter_obj.set_compressed_image(compress_path)
 
 	# Measure compression to evaluate new pixel dimensions
 	c_w, c_h = baxter_obj.get_compressed_size()

@@ -15,8 +15,6 @@ class Webcam():
 	to take both manual and automatic snapshots. 
 	"""
 	def __init__(self, img_dir, device=0):
-		
-
 		self.device = device 
 		print "Opening capture device..."
 		self.capture = cv2.VideoCapture(self.device)
@@ -107,7 +105,7 @@ class Webcam():
 			filename 	base name with which to save snapshots. 
 		"""
 		val, frame = self.capture.read()
-		cv2.imwrite(os.path.join(self.img_dir, "background.png"), frame)
+		cv2.imwrite(os.path.join(self.img_dir, filename + ".png"), frame)
 		print "Image saved."
 		
 def main():
