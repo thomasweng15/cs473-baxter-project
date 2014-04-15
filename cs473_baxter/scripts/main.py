@@ -102,7 +102,7 @@ def main():
 	"""
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
-	#bf.is_glove_attached()
+	bf.is_glove_attached()
 	
 	bf.set_init_joint_positions()
 	bf.compress_object()
