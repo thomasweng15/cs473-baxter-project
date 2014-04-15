@@ -13,7 +13,7 @@ from position_control import PositionControl
 from webcam import Webcam
 from cs473vision.cs473vision.obj_baxter import BaxterObject
 
-CONFIG = "./src/cs473-baxter-project/cs473_baxter/images/"
+CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config'
 
 class BoxFit():
 	"""The primary module for running compression trials.
@@ -38,12 +38,9 @@ class BoxFit():
 		self.img_dir = self._create_img_dir()
 		self._camera = Webcam(self.img_dir)
 
-	def _create_img_dir(self, img_dir):
+	def _create_img_dir(self):
 		"""Creates a timestamped folder in the img_dir directory
 		that stores the images of one compression run.
-
-		params:
-			img_dir 	base directory in which to create the folder. 
 		"""
 		Config = ConfigParser.ConfigParser()
 		Config.read(CONFIG)
