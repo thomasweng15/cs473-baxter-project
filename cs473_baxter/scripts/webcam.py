@@ -53,7 +53,7 @@ class Webcam():
 					print "Image saved."
 				break
 
- 	def take_automatic_snapshot(self, filename, time=3, delay=200):
+ 	def take_automatic_snapshot(self, filename, time=5, delay=200):
  		rate = rospy.Rate(delay)
  		start = rospy.Time.now()
  		elapsed = rospy.Time.now() - start
@@ -97,6 +97,10 @@ def main():
 	parser.add_argument(
 		'-f', '--file', dest='filename', required=False,
 		help="the base filename to save to"
+	)
+	parser.add_argument(
+		'-s', '--subproc', dest='subprocess', required=False,
+		help="whether or not this module is run as a subprocess"
 	)
 	args = parser.parse_args(rospy.myargv()[1:])
 

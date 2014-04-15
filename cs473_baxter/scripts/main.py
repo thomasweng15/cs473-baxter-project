@@ -48,13 +48,30 @@ class BoxFit():
 	def compress_object(self):
 		self._camera.capture.release()
 
-		proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
-					"-d", self.img_dir, 
-					"-f", "compression"])
+		time_data = open(os.path.join(self.img_dir, 'timestamps.txt'), 'a+')
+		r_data = open(os.path.join(self.img_dir, 'rostopic_data.txt'), 'a+')
+		r_start = rospy.Time.now()
+		time_data.write("rostopic: " + str(r_start.nsecs) + '\n')
+		r_proc = subprocess.Popen(['rostopic', 'echo', 
+			'/robot/limb/right/endpoint_state'], 
+			stdout=r_data) 
+		
+		w_start = rospy.Time.now()
+		time_data.write("webcam: " + str(w_start.nsecs) + '\n')
+		w_proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
+			"-d", self.img_dir, 
+			"-f", "compression"])
+
+		c_start = rospy.Time.now()
+		time_data.write("compress: " + str(c_start.nsecs) + '\n')
    		self.ps.move_to_jp(
-   					self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
-   					timeout=4, speed=0.05)
+   			self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
+   			timeout=4, speed=0.1)
    		
+   		r_proc.terminate()
+   		w_proc.terminate()
+   		time_data.close()
+
    		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
 	def clean_shutdown(self):
@@ -69,7 +86,7 @@ def main():
 	# Initializations
 	bf = BoxFit(IMG_DIR)
 	rospy.on_shutdown(bf.clean_shutdown)
-	bf.is_glove_attached()
+	#bf.is_glove_attached()
 	
 	#bf.set_init_joint_positions()
 	bf.compress_object()

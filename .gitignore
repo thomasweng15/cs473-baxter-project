@@ -53,3 +53,5 @@ srv_gen
 
 *.jpg
 *.png
+timestamps.txt
+rostopic_data.txt

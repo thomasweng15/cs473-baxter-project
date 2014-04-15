@@ -58,6 +58,8 @@ class PositionControl():
 				l = line.split(', ')
 				jp[l[0]] = float(l[1].strip('\n'))
 
+		f.close()
+
 		if found_selector == False:
 			print "Error: selector in '" + ARM_POSITIONS + "' was not found."
 			return {}

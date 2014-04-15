@@ -28,3 +28,6 @@ Set other arm's initial joint position and access other arm's camera
 Turn IMG_DIR into a line in the config file
 Turn initial arm configurations into XML format
 
+force compliance?
+felt bottom to glove?
+
