@@ -91,7 +91,7 @@ class Webcam():
  		while elapsed < genpy.rostime.Duration(time):
  			val, frame = self.capture.read()
 
- 			cur_name = filename + str(num) + ".png"
+ 			cur_name = filename + ("%03d" % num) + ".png"
  			num += 1
  			cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
  			time_data.write(str(num) + ": " + str(rospy.Time.now().nsecs) + '\n')	
