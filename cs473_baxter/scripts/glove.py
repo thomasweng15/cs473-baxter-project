@@ -58,7 +58,10 @@ def main():
 
 	g = Glove('right')
 
-	g.grip_glove() if args.grip == 'grip' else g.release_glove()
+	if args.grip == 'grip': 
+		g.grip_glove()
+	else:
+		g.release_glove()
 
 if __name__ == '__main__':
 	main()

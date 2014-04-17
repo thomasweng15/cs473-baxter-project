@@ -14,19 +14,37 @@ class Webcam():
 	"""Provides an interface to open an image capture device
 	to take both manual and automatic snapshots. 
 	"""
-	def __init__(self, img_dir, device=0):
-		rospy.init_node("webcam")
+	def __init__(self, img_dir):
+		self.img_dir = img_dir
+		self.is_open = False
+		self.capture = None
 
-		self.device = device 
-		print "Opening capture device..."
-		self.capture = cv2.VideoCapture(self.device)
+	def open(self, device=0):
+		"""Intialize the capture device.
+
+		params:
+			device		the id of the device to open
+		"""
+		print "Opening capture device."
+		self.capture = cv2.VideoCapture(device)
 		self.capture.set(3,960) # CV_CAP_PROP_FRAME_WIDTH  
 		self.capture.set(4,720) # CV_CAP_PROP_FRAME_HEIGHT 
-		self.img_dir = img_dir
 
 		if not self.capture:
 			print "Error opening capture device"
 			sys.exit(1)
+		else:
+			self.is_open = True
+
+	def close(self):
+		"""Close the capture device."""
+		print "Closing capture device."
+		if self.is_open:
+			self.capture.release()
+			self.capture = None
+			self.is_open = False
+		else:
+			print "Error: no capture device open, cannot close device."
 
 	def show_video_stream(self):
 		"""Show a video feed from the webcam. 
@@ -72,7 +90,7 @@ class Webcam():
 					print "Image saved."
 				break
 
- 	def take_automatic_snapshot(self, filename, time=3, delay=200):
+ 	def take_automatic_snapshot(self, filename, time=8, delay=200):
  		"""Automatically take snapshots from the webcam. 
 		
 		params:
@@ -81,18 +99,24 @@ class Webcam():
 			delay		interval in ms between snapshots. 
 		"""
  		rate = rospy.Rate(delay)
+ 		num = 0
  		start = rospy.Time.now()
  		elapsed = rospy.Time.now() - start
- 		num = 0
+
+ 		time_data = open(os.path.join(self.img_dir, "webcam_data.txt"), 'a+')
+		time_data.write("webcam start: " + str(start.nsecs) + '\n')
+			
  		while elapsed < genpy.rostime.Duration(time):
  			val, frame = self.capture.read()
 
- 			cur_name = filename + str(num) + ".png"
+ 			cur_name = filename + ("%03d" % num) + ".png"
  			num += 1
  			cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
- 			print cur_name + " saved."	
+ 			time_data.write(str(num) + ": " + str(rospy.Time.now().nsecs) + '\n')	
  			rate.sleep()
  			elapsed = rospy.Time.now() - start
+
+ 		time_data.close()
 
 	def take_snapshot(self, filename):
 		"""Take one snapshot from the webcam.
@@ -101,7 +125,7 @@ class Webcam():
 			filename 	base name with which to save snapshots. 
 		"""
 		val, frame = self.capture.read()
-		cv2.imwrite(os.path.join(self.img_dir, "background.png"), frame)
+		cv2.imwrite(os.path.join(self.img_dir, filename), frame)
 		print "Image saved."
 		
 def main():
@@ -115,17 +139,24 @@ def main():
 		help="the directory to save to"
 	)
 	parser.add_argument(
-		'-f', '--file', dest='filename', required=False,
-		help="the base filename to save to"
+		'-t', '--time', dest='time', required=False,
+		help="how long to take snapshots"
 	)
 	args = parser.parse_args(rospy.myargv()[1:])
 
-	args.directory = "." if args.directory is None
-	args.filename = "TEST" if args.filename is None
-	
-	w = Webcam(args.directory)
-	w.take_automatic_snapshot(args.filename)
+	if args.directory is None:
+		args.directory = '.'
+	if args.time is None:
+		args.time = 8
+	else:
+		args.time = int(args.time)
 
+	rospy.init_node("webcam")
+
+	w = Webcam(args.directory)
+	w.open()
+	w.take_automatic_snapshot("compression", time=args.time)
+	w.close()
 
 if __name__ == '__main__':
 	main()
