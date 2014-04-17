@@ -34,8 +34,8 @@ class PositionControl(object):
 
         try:
             self._limb.move_to_joint_positions(position, timeout)
-        except Exception:
-            print "Warning: did not reach commanded joint position"
+        except EnvironmentError, msg:
+            print msg
 
         self._limb.set_joint_position_speed(0.3)
 
