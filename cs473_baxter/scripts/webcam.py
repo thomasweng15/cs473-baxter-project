@@ -100,6 +100,7 @@ class Webcam(object):
             duration    time in seconds in which to take snapshots.
             delay       interval in ms between snapshots.
         """
+        self.open()
         rate = rospy.Rate(delay)
         num = 0
         start = rospy.Time.now()
@@ -119,6 +120,7 @@ class Webcam(object):
             elapsed = rospy.Time.now() - start
 
         time_data.close()
+        self.close()
 
     def take_snapshot(self, filename):
         """Take one snapshot from the webcam.
@@ -126,8 +128,10 @@ class Webcam(object):
         params:
             filename    base name with which to save snapshots.
         """
+        self.open()
         val, frame = self.capture.read()
         cv2.imwrite(os.path.join(self.img_dir, filename), frame)
+        self.close()
         print "Image saved."
 
 
@@ -156,9 +160,7 @@ def main():
     rospy.init_node("webcam")
 
     cam = Webcam(args.directory)
-    cam.open()
     cam.take_automatic_snapshot("compression", duration=args.time)
-    cam.close()
 
 if __name__ == '__main__':
     main()

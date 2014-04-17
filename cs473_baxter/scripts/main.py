@@ -64,6 +64,25 @@ class BoxFit(object):
         """Move arm(s) to initial joint positions."""
         self.p_ctrl.set_neutral()
 
+    def take_reference_images(self, camera):
+        """Takes reference images like the background image, 
+        reference object image, arm image, and object image."""
+        print 'Taking snapshot of the background.'
+        camera.take_snapshot('background.png')
+
+        raw_input("Place reference object in center. Press ENTER when finished.")
+        camera.take_snapshot('reference.png')
+        raw_input("Remove the reference object. Press ENTER when finished.")
+
+        print 'Taking snapshot of just the arm'
+        joint_pos = self.p_ctrl.get_jp_from_file('RIGHT_ARM_INIT_POSITION')
+        self.p_ctrl.move_to_jp(joint_pos)
+        camera.take_snapshot('arm.png')
+        self.set_neutral()
+
+        raw_input("Place object alone in center. Press ENTER when finished.")
+        camera.take_snapshot('object.png')
+
     def compress_object(self):
         """Compress an object while opening the webcam to take
         snapshots during the compression.
@@ -107,6 +126,31 @@ class BoxFit(object):
         w_proc.terminate()
         time_data.close()
 
+    def process_images(self):
+        """Use the cs473vision module to process 
+        the images."""
+        base = self.img_dir + "/"
+        bg_path = base + 'background.png'
+        arm_path = base + 'arm.png'
+        uncompressed_path =  base + 'object.png'
+
+        baxter_obj = BaxterObjectView(bg_path)
+        baxter_obj.set_arm_image(arm_path)
+        #baxter_obj.set_arm_color((h, s, v), (h, s, v))
+        baxter_obj.set_uncompressed_image(uncompressed_path)
+
+        print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
+        for i in range(999):
+            path = base + "/compression" + ('%03d' % i) + ".png"
+            if os.path.isfile(path):
+                baxter_obj.set_compressed_image(path, force=-1)
+            else:
+                break
+        print "Compressed size: " + str(baxter_obj.get_compressed_size())
+
+        baxter_obj.export_sizes("./sizes.txt")
+        #baxter_obj.display_results()
+
     def clean_shutdown(self):
         """Clean up after shutdown callback is registered."""
         print "\nExiting box fit routine..."
@@ -121,60 +165,11 @@ def main():
     rospy.on_shutdown(box_fit.clean_shutdown)
     box_fit.set_neutral()
 
-    print 'Taking snapshot of the background.'
-    camera.open()
-    time.sleep(2)
-    camera.take_snapshot('background.png')
-    camera.close()
-
-    raw_input("Place reference object in center. Press ENTER when finished.")
-    camera.open()
-    time.sleep(2)
-    camera.take_snapshot('reference.png')
-    camera.close()
-    raw_input("Remove the reference object. Press ENTER when finished.")
-
-    print 'Taking snapshot of just the arm'
-    joint_pos = box_fit.p_ctrl.get_jp_from_file('RIGHT_ARM_INIT_POSITION')
-    box_fit.p_ctrl.move_to_jp(joint_pos)
-    camera.open()
-    camera.take_snapshot('arm.png')
-    camera.close()
-    box_fit.set_neutral()
-
-    raw_input("Place object alone in center. Press ENTER when finished.")
-    camera.open()
-    camera.take_snapshot('object.png')
-    camera.close()
+    box_fit.take_reference_images(camera)
 
     box_fit.compress_object()
 
-    # Do image stuff
-
-    base = box_fit.img_dir + "/"
-    bg_path = base + '/background.png'
-    arm_path = base + '/arm.png'
-    uncompressed_path =  base + '/object.png'
-
-    baxter_obj = BaxterObjectView(bg_path)
-    baxter_obj.set_arm_image(arm_path)
-    #baxter_obj.set_arm_color((h, s, v), (h, s, v))
-    baxter_obj.set_uncompressed_image(uncompressed_path)
-
-    print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
-
-    for i in range(999):
-        path = base + "/compression" + ('%03d' % i) + ".png"
-        if os.path.isfile(path):
-            baxter_obj.set_compressed_image(path, force=-1)
-        else:
-            break
-
-    print "Compressed size: " + str(baxter_obj.get_compressed_size())
-
-    baxter_obj.export_sizes("./sizes.txt")
-
-    #baxter_obj.display_results()
+    box_fit.process_images()
 
 if __name__ == '__main__':
     main()
