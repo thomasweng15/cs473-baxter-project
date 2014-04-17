@@ -12,6 +12,7 @@ import baxter_interface
 from position_control import PositionControl
 from webcam import Webcam
 from cs473vision.cs473vision.obj_baxter import BaxterObject
+from cs473vision.cs473vision.view_baxter import BaxterObjectView
 
 CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config'
 
@@ -36,7 +37,6 @@ class BoxFit():
 		self.ps = PositionControl('right')
 
 		self.img_dir = self._create_img_dir()
-		self._camera = Webcam(self.img_dir)
 
 	def is_glove_attached(self):
 		"""Prompt the user to check if Baxter's pusher glove
@@ -58,19 +58,14 @@ class BoxFit():
 		os.mkdir(img_dir)
 		return img_dir
 	
-	def set_init_joint_positions(self):
+	def set_neutral(self):
 		"""Move arm(s) to initial joint positions."""
 		self.ps.set_neutral()
 		
-	def take_background_snapshot(self):
-		print "Taking snapshot of background."
-		self._camera.take_snapshot('background')
-
 	def compress_object(self, filename="compression"):
 		"""Compress an object while opening the webcam to take 
 		snapshots during the compression. 
 		"""
-		self._camera.capture.release()
 		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
 
 		# Suppress collision detection and contact safety 
@@ -118,31 +113,63 @@ def main():
 	"""
 	"""
 	BF = BoxFit()
+	WC = Webcam(BF.img_dir)
 	rospy.on_shutdown(BF.clean_shutdown)
-	BF.set_init_joint_positions()
-	BF.take_background_snapshot()
+	BF.set_neutral()
 
-	user_input = raw_input("Place object alone in center. Press any key when finished.")
+	print 'Taking snapshot of the background.'
+	WC.open()
+	time.sleep(2)
+	WC.take_snapshot('background.png')
+	WC.close()
 
-	BF.compress_object()
+	user_input = raw_input("Place reference object alone in center. Press ENTER when finished.")
+	WC.open()
+	time.sleep(2)
+	WC.take_snapshot('reference.png')
+	WC.close()
+	user_input = raw_input("Remove the reference object. Press ENTER when finished.")
 
-	"""
+	print 'Taking snapshot of just the arm'
+	BF.ps.move_to_jp(BF.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+	WC.open()
+	WC.take_snapshot('arm.png')
+	WC.close()
+	BF.set_neutral()
 
-	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
+	user_input = raw_input("Place object alone in center. Press ENTER when finished.")
+	WC.open()
+	WC.take_snapshot('object.png')
+	WC.close()
 
-	# Calculate pixel dimensions of object
-	u_w, u_h = baxter_obj.get_uncompressed_size()
+	BF.compress_object(WC)
+
+	# Do image stuff
+
+	base = BF.img_dir + "/"
+	bg_path = base + '/background.png'
+	arm_path = base + '/arm.png'
+	uncompressed_path =  base + '/object.png'
+
+	baxter_obj = BaxterObjectView(bg_path)
+	baxter_obj.set_arm_image(arm_path)
+	#baxter_obj.set_arm_color((h, s, v), (h, s, v))
+	baxter_obj.set_uncompressed_image(uncompressed_path)
+
+	print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
+
+	for i in range(999):
+		path = base + "/compression" + ('%03d' % i) + ".png"
+		if os.path.isfile(path):
+			baxter_obj.set_compressed_image(path, force=-1)
+		else:
+			break
+
+	print "Compressed size: " + str(baxter_obj.get_compressed_size())
+
+	baxter_obj.export_sizes("./sizes.txt")
 	
-	# Compare pixel dimensions with that of box
-	fits = baxter_obj.check_uncompressed_fit()
-
-	# Measure compression to evaluate new pixel dimensions
-	c_w, c_h = baxter_obj.get_compressed_size()
-	fits = baxter_obj.check_compressed_fit()
-
-	# Return final answer
-	print fits"""
-	
+	#baxter_obj.display_results()
 
 if __name__ == '__main__':
 	main()

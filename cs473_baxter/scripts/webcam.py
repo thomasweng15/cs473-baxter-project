@@ -14,17 +14,37 @@ class Webcam():
 	"""Provides an interface to open an image capture device
 	to take both manual and automatic snapshots. 
 	"""
-	def __init__(self, img_dir, device=0):
-		self.device = device 
-		print "Opening capture device..."
-		self.capture = cv2.VideoCapture(self.device)
+	def __init__(self, img_dir):
+		self.img_dir = img_dir
+		self.is_open = False
+		self.capture = None
+
+	def open(self, device=0):
+		"""Intialize the capture device.
+
+		params:
+			device		the id of the device to open
+		"""
+		print "Opening capture device."
+		self.capture = cv2.VideoCapture(device)
 		self.capture.set(3,960) # CV_CAP_PROP_FRAME_WIDTH  
 		self.capture.set(4,720) # CV_CAP_PROP_FRAME_HEIGHT 
-		self.img_dir = img_dir
 
 		if not self.capture:
 			print "Error opening capture device"
 			sys.exit(1)
+		else:
+			self.is_open = True
+
+	def close(self):
+		"""Close the capture device."""
+		print "Closing capture device."
+		if self.is_open:
+			self.capture.release()
+			self.capture = None
+			self.is_open = False
+		else:
+			print "Error: no capture device open, cannot close device."
 
 	def show_video_stream(self):
 		"""Show a video feed from the webcam. 
@@ -105,7 +125,7 @@ class Webcam():
 			filename 	base name with which to save snapshots. 
 		"""
 		val, frame = self.capture.read()
-		cv2.imwrite(os.path.join(self.img_dir, filename + ".png"), frame)
+		cv2.imwrite(os.path.join(self.img_dir, filename), frame)
 		print "Image saved."
 		
 def main():
@@ -134,7 +154,9 @@ def main():
 	rospy.init_node("webcam")
 
 	w = Webcam(args.directory)
+	w.open()
 	w.take_automatic_snapshot("compression", time=args.time)
+	w.close()
 
 
 if __name__ == '__main__':

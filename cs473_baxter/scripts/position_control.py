@@ -1,90 +1,78 @@
 #!/usr/bin/env python
+"""Position Control Module
+"""
 
-import sys
 import ConfigParser
 
 import rospy
 
 import baxter_interface
 
-from geometry_msgs.msg import (
-    PoseStamped,
-    Pose,
-    Point,
-    Quaternion,
-)
-from std_msgs.msg import Header
-
-from baxter_core_msgs.srv import (
-    SolvePositionIK,
-    SolvePositionIKRequest,
-)
-
 CONFIG = "./src/cs473-baxter-project/cs473_baxter/config/config"
 
-class PositionControl():
-	"""Provides an interface to Baxter's limbs and 
-	joint control functions. 
-	"""
-	def __init__(self, limb):
-		self._limb = baxter_interface.limb.Limb(limb) 
-	
-	def set_neutral(self):
-		"""Move limb to neutral position."""
-		self._limb.move_to_neutral()
+class PositionControl(object):
+    """Provides an interface to Baxter's limbs and
+    joint control functions.
+    """
+    def __init__(self, limb):
+        self._limb = baxter_interface.limb.Limb(limb)
 
-	def move_to_jp(self, position, timeout=7, speed=0.3):
-		"""Move limb to specified joint positions.
+    def set_neutral(self):
+        """Move limb to neutral position."""
+        self._limb.move_to_neutral()
 
-		params:
-			position 	dict of joint position destinations
-			timeout		seconds to wait for movement completion	
-			speed 		speed at which to move to position. range: (0,1)
-		"""
-		if speed != 0.3:
-			self._limb.set_joint_position_speed(speed)
+    def move_to_jp(self, position, timeout=7, speed=0.3):
+        """Move limb to specified joint positions.
 
-		try:
-			self._limb.move_to_joint_positions(position, timeout)
-		except Exception:
-			print "Warning: did not reach commanded joint position"
+        params:
+            position    dict of joint position destinations
+            timeout     seconds to wait for movement completion
+            speed       speed at which to move to position. range: (0,1)
+        """
+        if speed != 0.3:
+            self._limb.set_joint_position_speed(speed)
 
-		self._limb.set_joint_position_speed(0.3)
+        try:
+            self._limb.move_to_joint_positions(position, timeout)
+        except Exception:
+            print "Warning: did not reach commanded joint position"
 
-	def get_jp_from_file(self, section, filename=CONFIG):
-		"""Return a dict of joint positions from a file.
+        self._limb.set_joint_position_speed(0.3)
 
-		params:
-			section 	header to read in from file
-			filename 	name and path of the file to read from 
+    def get_jp_from_file(self, section, filename=CONFIG):
+        """Return a dict of joint positions from a file.
 
-		Return an empty dict if there was a read error.
-		"""
-		Config = ConfigParser.ConfigParser()
-		Config.read(filename)
-		positions = Config.items(section)
+        params:
+            section     header to read in from file
+            filename    name and path of the file to read from
 
-		jp ={}
-		for pair in positions:
-			jp[pair[0]] = float(pair[1])
+        Return an empty dict if there was a read error.
+        """
+        config = ConfigParser.ConfigParser()
+        config.read(filename)
+        positions = config.items(section)
 
-		return jp
+        joint_positions = {}
+        for pair in positions:
+            joint_positions[pair[0]] = float(pair[1])
+
+        return joint_positions
 
 
 def main():
-	"""
-	"""
-	rospy.init_node("cs473_basic_poke")
+    """Position Control module
+    """
+    rospy.init_node("cs473_basic_poke")
 
-	pc = PositionControl('right')
+    p_control = PositionControl('right')
 
-	print "Moving to neutral pose..."
-	pc.set_neutral()
+    print "Moving to neutral pose..."
+    p_control.set_neutral()
 
-	joint_position = pc.get_jp_from_file("RIGHT_ARM_INIT_POSITION")
-	print "Moving to pose specified by joint positions..."
-	pc.move_to_jp(joint_position)
+    joint_position = p_control.get_jp_from_file("RIGHT_ARM_INIT_POSITION")
+    print "Moving to pose specified by joint positions..."
+    p_control.move_to_jp(joint_position)
 
 
 if __name__ == '__main__':
-	main() 
+    main()

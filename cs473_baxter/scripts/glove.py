@@ -15,7 +15,7 @@ class Glove():
 	def __init__(self, gripper):
 		rospy.init_node("cs473_gripper")
 
-		self.gripper = baxter_interface.aGripper(gripper)
+		self.gripper = baxter_interface.Gripper(gripper)
 
 		# Verify robot is enabled
 		print "Getting robot state..."
