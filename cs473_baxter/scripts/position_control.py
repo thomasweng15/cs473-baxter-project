@@ -1,14 +1,13 @@
 #!/usr/bin/env python
-"""Position Control Module
-"""
+"""Position Control Module."""
 
-import ConfigParser
+import yaml
 
 import rospy
 
 import baxter_interface
 
-CONFIG = "./src/cs473-baxter-project/cs473_baxter/config/config"
+CONFIG = "./src/cs473-baxter-project/cs473_baxter/config/config.yaml"
 
 class PositionControl(object):
     """Provides an interface to Baxter's limbs and
@@ -48,20 +47,20 @@ class PositionControl(object):
 
         Return an empty dict if there was a read error.
         """
-        config = ConfigParser.ConfigParser()
-        config.read(filename)
-        positions = config.items(section)
+        config_file = open(CONFIG)
+        dataMap = yaml.safe_load(config_file)
+        positions = dataMap[section]
 
-        joint_positions = {}
-        for pair in positions:
-            joint_positions[pair[0]] = float(pair[1])
+        #joint_positions = {}
+        #for pair in positions:
+        #    joint_positions[pair[0]] = float(pair[1])
 
-        return joint_positions
+        #return joint_positions
+        return positions
 
 
 def main():
-    """Position Control module
-    """
+    """Position Control module."""
     rospy.init_node("cs473_basic_poke")
 
     p_control = PositionControl('right')
@@ -69,7 +68,7 @@ def main():
     print "Moving to neutral pose..."
     p_control.set_neutral()
 
-    joint_position = p_control.get_jp_from_file("RIGHT_ARM_INIT_POSITION")
+    joint_position = p_control.get_jp_from_file("r_arm_init_positions")
     print "Moving to pose specified by joint positions..."
     p_control.move_to_jp(joint_position)
 
