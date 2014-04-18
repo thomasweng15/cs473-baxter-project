@@ -104,7 +104,7 @@ class BoxFit(object):
             "-d", self.img_dir,
             "-t", "12"])
 
-        time.sleep(2) # Buffer time for webcam subprocess to get ready
+        time.sleep(4) # Buffer time for webcam subprocess to get ready
 
         time_data.write('rostopic: ' + str(rospy.Time.now().nsecs) + '\n')
         r_proc = subprocess.Popen(['rostopic', 'echo',
@@ -143,13 +143,13 @@ class BoxFit(object):
         for i in range(999):
             path = base + "/compression" + ('%03d' % i) + ".png"
             if os.path.isfile(path):
-                baxter_obj.set_compressed_image(path, force=-1)
+                baxter_obj.set_compressed_image(path)
             else:
                 break
         print "Compressed size: " + str(baxter_obj.get_compressed_size())
 
-        baxter_obj.export_sizes("./sizes.txt")
-        #baxter_obj.display_results()
+        baxter_obj.export_sizes("./sizes.csv")
+        baxter_obj.display_results()
 
     def clean_shutdown(self):
         """Clean up after shutdown callback is registered."""
