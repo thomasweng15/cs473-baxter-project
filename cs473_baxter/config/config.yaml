@@ -3,19 +3,19 @@
 image_directory: ./src/cs473-baxter-project/cs473_baxter/data/
 
 r_arm_init_positions:
-    right_s0: 0.714451551141
-    right_s1: -0.12386894848
-    right_e0: 0.0414174812256
-    right_e1: 2.01488376259
-    right_w0: 3.05875768755
-    right_w1: 1.93511676171
-    right_w2: -0.122718462891
+    right_s0: 0.752801070795
+    right_s1: -0.158000020972
+    right_e0: 0.0314466061157
+    right_e1: 2.01565075298
+    right_w0: 3.06105865873
+    right_w1: 1.87452452065
+    right_w2: -0.0809174864685
 
 r_arm_compress_positions:
-    right_s0: 0.74666514765
-    right_s1: -0.147645650665
-    right_e0: -0.0283786445435
-    right_e1: 1.58997108483
-    right_w0: 3.06144215392
-    right_w1: 1.52094194945
-    right_w2: -0.0452524331909
+    right_s0: 0.753184565991
+    right_s1: -0.156466040186
+    right_e0: 0.0475534043701
+    right_e1: 1.56159244028
+    right_w0: 3.05837419235
+    right_w1: 1.46303417477
+    right_w2: -0.052538841925
