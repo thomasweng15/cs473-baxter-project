@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+
+"""The experiment module"""
+
 import os
 import time
 import subprocess
-
 import sys
+import yaml
 
 import rospy
 
@@ -11,103 +14,166 @@ import baxter_interface
 
 from position_control import PositionControl
 from webcam import Webcam
-from cs473vision.cs473vision.obj_baxter import BaxterObject
+from cs473vision.cs473vision.view_baxter import BaxterExperiment
 
-IMG_DIR = "./src/cs473-baxter-project/cs473_baxter/images/"
+CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config.yaml'
 
-class BoxFit():
-	def __init__(self, img_dir):
-		# Verify robot is enabled
-		print "Getting robot state..."
-		self._rs = baxter_interface.RobotEnable()
-		self._init_state = self._rs.state().enabled
-		print "Enabling robot..."
-		self._rs.enable()
-		print "Running. Ctrl-c to quit"
+class BoxFit(object):
+    """The primary module for running compression trials.
+    Links the webcam, vision segmentation, and actuation
+    modules together.
+    """
+    def __init__(self):
+        rospy.init_node("cs473_box_fit")
 
-		self.ps = PositionControl('right')
+        self.is_glove_attached()
 
-		self.img_dir = self._create_img_dir(img_dir)
-		self._camera = Webcam(self.img_dir)
+        # Verify robot is enabled
+        print "Getting robot state..."
+        self._rs = baxter_interface.RobotEnable()
+        self._init_state = self._rs.state().enabled
+        print "Enabling robot..."
+        self._rs.enable()
+        print "Running. Ctrl-c to quit"
 
-	def _create_img_dir(self, img_dir):
-		dirname = ''.join([img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
-		os.mkdir(dirname)
-		return dirname
+        self.p_ctrl = PositionControl('right')
 
-	def is_glove_attached(self):
-		glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
-		if glove_on is not "y":
-			print "\nERROR: Run glove.py to attach the glove before running BoxFit."
-			sys.exit(1)
+        self.img_dir = self._create_img_dir()
 
-	def set_init_joint_positions(self):
-		self.ps.set_neutral()
-		#self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
-		
-	def compress_object(self):
-		self._camera.capture.release()
+    def is_glove_attached(self):
+        """Prompt the user to check if Baxter's pusher glove
+        is attached or not. Exit the process if it is not.
+        """
+        glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
+        if glove_on is not "y":
+            print "\nERROR: Attach glove with glove.py before running BoxFit."
+            sys.exit(1)
 
-		proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py', 
-					"-d", self.img_dir, 
-					"-f", "compression"])
-   		self.ps.move_to_jp(
-   					self.ps.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
-   					timeout=4, speed=0.05)
-   		
-   		self.ps.move_to_jp(self.ps.get_jp_from_file('RIGHT_ARM_INIT_POSITION'))
+    def _create_img_dir(self):
+        """Creates a timestamped folder in the img_dir directory
+        that stores the images of one compression run.
+        """
+        config_file = open(CONFIG)
+        dataMap = yaml.safe_load(config_file)
+        base_img_dir = dataMap["image_directory"]
+        img_dir = ''.join([base_img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
+        os.mkdir(img_dir)
+        return img_dir
 
-	def clean_shutdown(self):
-		print "\nExiting box fit routine..."
-		if not self._init_state and self._rs.state().enabled:
-			print "Disabling robot..."
-			self._rs.disable()
+    def set_neutral(self):
+        """Move arm(s) to initial joint positions."""
+        self.p_ctrl.set_neutral()
+
+    def take_reference_images(self, camera):
+        """Takes reference images like the background image, 
+        reference object image, arm image, and object image."""
+        print 'Taking snapshot of the background.'
+        camera.take_snapshot('background.png')
+
+        raw_input("Place reference object in center. Press ENTER when finished.")
+        camera.take_snapshot('reference.png')
+        raw_input("Remove the reference object. Press ENTER when finished.")
+
+        print 'Taking snapshot of just the arm'
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
+        self.p_ctrl.move_to_jp(joint_pos)
+        camera.take_snapshot('arm.png')
+        self.set_neutral()
+
+        raw_input("Place object alone in center. Press ENTER when finished.")
+        camera.take_snapshot('object.png')
+
+    def compress_object(self):
+        """Compress an object while opening the webcam to take
+        snapshots during the compression.
+        """
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
+        self.p_ctrl.move_to_jp(joint_pos)
+
+        # Suppress collision detection and contact safety
+        contact_safety_proc = subprocess.Popen(['rostopic', 'pub',
+            '-r', '10',
+            '/robot/limb/right/suppress_contact_safety',
+            'std_msgs/Empty'])
+
+        time_data = open(os.path.join(self.img_dir, 'timestamps.txt'), 'a+')
+        r_data = open(os.path.join(self.img_dir, 'rostopic_data.txt'), 'a+')
+
+        time_data.write('webcam: ' + str(rospy.Time.now().nsecs) + '\n')
+        w_proc = subprocess.Popen(['rosrun', 'cs473_baxter', 'webcam.py',
+            "-d", self.img_dir,
+            "-t", "12"])
+
+        time.sleep(4) # Buffer time for webcam subprocess to get ready
+
+        time_data.write('rostopic: ' + str(rospy.Time.now().nsecs) + '\n')
+        r_proc = subprocess.Popen(['rostopic', 'echo',
+            '/robot/limb/right/endpoint_state'],
+            stdout=r_data)
+
+        time_data.write('compress: ' + str(rospy.Time.now().nsecs) + '\n')
+        self.p_ctrl.move_to_jp(
+            self.p_ctrl.get_jp_from_file('r_arm_compress_positions'),
+            timeout=10, speed=0.05)
+
+        time.sleep(1.5)
+
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
+        self.p_ctrl.move_to_jp(joint_pos)
+
+        contact_safety_proc.terminate()
+        r_proc.terminate()
+        w_proc.terminate()
+        time_data.close()
+
+    def process_images(self):
+        """Use the cs473vision module to process the images."""
+        base = self.img_dir + "/"
+        bg_path = base + 'background.png'
+        arm_path = base + 'arm.png'
+        uncompressed_path =  base + 'object.png'
+
+        baxter_obj = BaxterExperiment(bg_path)
+        baxter_obj.set_arm_image(arm_path)
+        #baxter_obj.set_arm_color((h, s, v), (h, s, v))
+        baxter_obj.set_uncompressed_image(uncompressed_path)
+
+        print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
+        for i in range(999):
+            path = base + "compression" + ('%03d' % i) + ".png"
+            if os.path.isfile(path):
+                baxter_obj.set_compressed_image(path)
+            else:
+                break
+        print "Compressed size: " + str(baxter_obj.get_compressed_size())
+
+        baxter_obj.export_sizes("./sizes.csv")
+        baxter_obj.display_results()
+
+    def clean_shutdown(self):
+        """Clean up after shutdown callback is registered."""
+        print "\nExiting box fit routine..."
+        if not self._init_state and self._rs.state().enabled:
+            print "Disabling robot..."
+            self._rs.disable()
 
 def main():
-	rospy.init_node("cs473_box_fit")
+    """Experiment module"""
+    box_fit = BoxFit()
+    camera = Webcam(box_fit.img_dir)
+    rospy.on_shutdown(box_fit.clean_shutdown)
+    box_fit.set_neutral()
 
-	# Initializations
-	bf = BoxFit(IMG_DIR)
-	rospy.on_shutdown(bf.clean_shutdown)
-	bf.is_glove_attached()
-	
-	#bf.set_init_joint_positions()
-	bf.compress_object()
+    box_fit.take_reference_images(camera)
 
-	
-	"""bg_path = os.path.join(bf.img_dir, "background.png")
-	box_path = None
-	#box_path = os.path.join(IMG_DIR, "box.png")
-	arm_path = os.path.join(bf.img_dir, "arm.png")
-	obj_path = os.path.join(bf.img_dir, "uncompressed_object.png")
-	compress_path = os.path.join(bf.img_dir, "compressed_object.png")
+    box_fit.compress_object()
 
-	# Take background images
-	bf._camera.take_reference_snapshot()
+    box_fit.process_images()
 
-	# Extract object from background
-	bf._camera.take_uncompressed_snapshot()
-	baxter_obj = BaxterObject(bg_path, box_path, obj_path)
-
-	# Calculate pixel dimensions of object
-	u_w, u_h = baxter_obj.get_uncompressed_size()
-	
-	# Compare pixel dimensions with that of box
-	fits = baxter_obj.check_uncompressed_fit()
-
-	# Compress object
-	bf.bm.move_to_jp(bf.bm.get_jp_from_file())
-	bf._camera.take_compressed_snapshot()
-	baxter_obj.set_arm_image(arm_path)
-	baxter_obj.set_compressed_image(compress_path)
-
-	# Measure compression to evaluate new pixel dimensions
-	c_w, c_h = baxter_obj.get_compressed_size()
-	fits = baxter_obj.check_compressed_fit()
-
-	# Return final answer
-	print fits"""
-	
+    # get endpoint data for the compression run
+    # calculate hooke's spring constant and return the est. value
+    #  for each discrete snapshot, averaging them all together. 
+    # k = X / F, k = constant, X = distance, F = force
 
 if __name__ == '__main__':
-	main()
+    main()
