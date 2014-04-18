@@ -31,7 +31,7 @@ class Webcam(object):
         self.capture = cv2.VideoCapture(device)
         self.capture.set(3, 960) # CV_CAP_PROP_FRAME_WIDTH
         self.capture.set(4, 720) # CV_CAP_PROP_FRAME_HEIGHT
-
+        
         if not self.capture:
             print "Error opening capture device"
             sys.exit(1)
@@ -53,6 +53,7 @@ class Webcam(object):
 
         Quit when the 'q' key is pressed.
         """
+        self.open()
         while True:
             val, frame = self.capture.read()
             cv2.imshow("input", frame)
@@ -60,6 +61,7 @@ class Webcam(object):
             key = cv2.waitKey(50) % 256
             if key == ord('q'):
                 break
+        self.close()
 
     def take_manual_snapshot(self, filename, num=1, delay=0.5):
         """Show a video feed from the webcam,
@@ -92,7 +94,7 @@ class Webcam(object):
                     print "Image saved."
                 break
 
-    def take_automatic_snapshot(self, filename, duration=8, delay=200):
+    def take_automatic_snapshot(self, filename, sleep=2, duration=8, delay=200):
         """Automatically take snapshots from the webcam.
 
         params:
@@ -101,6 +103,7 @@ class Webcam(object):
             delay       interval in ms between snapshots.
         """
         self.open()
+
         rate = rospy.Rate(delay)
         num = 0
         start = rospy.Time.now()
@@ -112,23 +115,31 @@ class Webcam(object):
         while elapsed < genpy.rostime.Duration(duration):
             val, frame = self.capture.read()
 
-            cur_name = filename + ("%03d" % num) + ".png"
-            num += 1
-            cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
-            time_data.write(str(num) + ":" + str(rospy.Time.now().nsecs) + "\n")
+            if elapsed > genpy.rostime.Duration(sleep):
+                cur_name = filename + ("%03d" % num) + ".png"
+                num += 1
+                cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
+                time_data.write(str(num) + ":" + str(rospy.Time.now().nsecs) + "\n")
             rate.sleep()
             elapsed = rospy.Time.now() - start
 
         time_data.close()
         self.close()
 
-    def take_snapshot(self, filename):
+    def take_snapshot(self, filename, sleep=2):
         """Take one snapshot from the webcam.
 
         params:
             filename    base name with which to save snapshots.
         """
         self.open()
+        start = rospy.Time.now()
+        elapsed = rospy.Time.now() - start
+
+        while elapsed < genpy.rostime.Duration(sleep):
+            val, frame = self.capture.read()
+            elapsed = rospy.Time.now() - start
+
         val, frame = self.capture.read()
         cv2.imwrite(os.path.join(self.img_dir, filename), frame)
         self.close()
@@ -161,6 +172,7 @@ def main():
 
     cam = Webcam(args.directory)
     cam.take_automatic_snapshot("compression", duration=args.time)
+    #cam.show_video_stream()
 
 if __name__ == '__main__':
     main()

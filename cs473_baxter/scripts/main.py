@@ -6,7 +6,7 @@ import os
 import time
 import subprocess
 import sys
-import ConfigParser
+import yaml
 
 import rospy
 
@@ -14,9 +14,9 @@ import baxter_interface
 
 from position_control import PositionControl
 from webcam import Webcam
-from cs473vision.cs473vision.view_baxter import BaxterObjectView
+from cs473vision.cs473vision.view_baxter import BaxterExperiment
 
-CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config'
+CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config.yaml'
 
 class BoxFit(object):
     """The primary module for running compression trials.
@@ -53,9 +53,9 @@ class BoxFit(object):
         """Creates a timestamped folder in the img_dir directory
         that stores the images of one compression run.
         """
-        config = ConfigParser.ConfigParser()
-        config.read(CONFIG)
-        base_img_dir = config.get("IMAGE_DIRECTORY", "base_img_dir")
+        config_file = open(CONFIG)
+        dataMap = yaml.safe_load(config_file)
+        base_img_dir = dataMap["image_directory"]
         img_dir = ''.join([base_img_dir, time.strftime("%d%m%Y_%H-%M-%S")])
         os.mkdir(img_dir)
         return img_dir
@@ -75,7 +75,7 @@ class BoxFit(object):
         raw_input("Remove the reference object. Press ENTER when finished.")
 
         print 'Taking snapshot of just the arm'
-        joint_pos = self.p_ctrl.get_jp_from_file('RIGHT_ARM_INIT_POSITION')
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
         self.p_ctrl.move_to_jp(joint_pos)
         camera.take_snapshot('arm.png')
         self.set_neutral()
@@ -87,7 +87,7 @@ class BoxFit(object):
         """Compress an object while opening the webcam to take
         snapshots during the compression.
         """
-        joint_pos = self.p_ctrl.get_jp_from_file('RIGHT_ARM_INIT_POSITION')
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
         self.p_ctrl.move_to_jp(joint_pos)
 
         # Suppress collision detection and contact safety
@@ -104,7 +104,7 @@ class BoxFit(object):
             "-d", self.img_dir,
             "-t", "12"])
 
-        time.sleep(2) # Buffer time for webcam subprocess to get ready
+        time.sleep(4) # Buffer time for webcam subprocess to get ready
 
         time_data.write('rostopic: ' + str(rospy.Time.now().nsecs) + '\n')
         r_proc = subprocess.Popen(['rostopic', 'echo',
@@ -113,12 +113,12 @@ class BoxFit(object):
 
         time_data.write('compress: ' + str(rospy.Time.now().nsecs) + '\n')
         self.p_ctrl.move_to_jp(
-            self.p_ctrl.get_jp_from_file('RIGHT_ARM_COMPRESS_POSITION'),
+            self.p_ctrl.get_jp_from_file('r_arm_compress_positions'),
             timeout=10, speed=0.05)
 
         time.sleep(1.5)
 
-        joint_pos = self.p_ctrl.get_jp_from_file('RIGHT_ARM_INIT_POSITION')
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
         self.p_ctrl.move_to_jp(joint_pos)
 
         contact_safety_proc.terminate()
@@ -133,22 +133,22 @@ class BoxFit(object):
         arm_path = base + 'arm.png'
         uncompressed_path =  base + 'object.png'
 
-        baxter_obj = BaxterObjectView(bg_path)
+        baxter_obj = BaxterExperiment(bg_path)
         baxter_obj.set_arm_image(arm_path)
         #baxter_obj.set_arm_color((h, s, v), (h, s, v))
         baxter_obj.set_uncompressed_image(uncompressed_path)
 
         print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
         for i in range(999):
-            path = base + "/compression" + ('%03d' % i) + ".png"
+            path = base + "compression" + ('%03d' % i) + ".png"
             if os.path.isfile(path):
-                baxter_obj.set_compressed_image(path, force=-1)
+                baxter_obj.set_compressed_image(path)
             else:
                 break
         print "Compressed size: " + str(baxter_obj.get_compressed_size())
 
-        baxter_obj.export_sizes("./sizes.txt")
-        #baxter_obj.display_results()
+        baxter_obj.export_sizes("./sizes.csv")
+        baxter_obj.display_results()
 
     def clean_shutdown(self):
         """Clean up after shutdown callback is registered."""
