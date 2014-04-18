@@ -109,13 +109,13 @@ class Webcam(object):
         rospy_time = rospy.Time()   # time object
         start = rospy_time.now()    # start of snapshot taking
         elapsed = rospy_time.now() - start  # time now vs. start
-        prev = 0    # previous elapsed time measurement
         sec = 1000000000    # one second in nanoseconds
         num_secs = 0        # number of whole seconds that have elapsed. 
 
         time_data = open(os.path.join(self.img_dir, "webcam_data.txt"), 'a+')
         time_data.write("webcam start: " + str(start.nsecs) + '\n')
 
+        over_nine = False
         while elapsed < genpy.rostime.Duration(duration):
             val, frame = self.capture.read()
 
@@ -124,12 +124,18 @@ class Webcam(object):
                 num += 1
                 cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
 
-                t_stamp = rospy_time.now().nsecs
-                if prev > t_stamp:
-                    num_secs += 1
-                formatted_stamp = "%011d" % (num_secs * sec + t_stamp)
-                prev = t_stamp
+                t_stamp = rospy_time.now() - start
+
+                if t_stamp.nsecs > 900000000:
+                	over_nine = True
+                else:
+                	if over_nine:
+                		num_secs += 1
+                	over_nine = False
+                		
+                formatted_stamp = "%010d" % (num_secs * sec + t_stamp.nsecs)
                 time_data.write(("%03d" % num) + ":" + formatted_stamp + "\n")
+                
 
             rate.sleep()
             prev = elapsed
