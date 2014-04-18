@@ -127,8 +127,7 @@ class BoxFit(object):
         time_data.close()
 
     def process_images(self):
-        """Use the cs473vision module to process 
-        the images."""
+        """Use the cs473vision module to process the images."""
         base = self.img_dir + "/"
         bg_path = base + 'background.png'
         arm_path = base + 'arm.png'
@@ -170,6 +169,11 @@ def main():
     box_fit.compress_object()
 
     box_fit.process_images()
+
+    # get endpoint data for the compression run
+    # calculate hooke's spring constant and return the est. value
+    #  for each discrete snapshot, averaging them all together. 
+    # k = X / F, k = constant, X = distance, F = force
 
 if __name__ == '__main__':
     main()
