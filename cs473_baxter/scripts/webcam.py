@@ -104,10 +104,14 @@ class Webcam(object):
         """
         self.open()
 
-        rate = rospy.Rate(delay)
-        num = 0
-        start = rospy.Time.now()
-        elapsed = rospy.Time.now() - start
+        rate = rospy.Rate(delay)    # sleep rate between snapshots
+        num = 0     # index of snapshot
+        rospy_time = rospy.Time()   # time object
+        start = rospy_time.now()    # start of snapshot taking
+        elapsed = rospy_time.now() - start  # time now vs. start
+        prev = start    # previous elapsed time measurement
+        sec = 1000000000    # one second in nanoseconds
+        num_secs = 0        # number of whole seconds that have elapsed. 
 
         time_data = open(os.path.join(self.img_dir, "webcam_data.txt"), 'a+')
         time_data.write("webcam start: " + str(start.nsecs) + '\n')
@@ -119,9 +123,14 @@ class Webcam(object):
                 cur_name = filename + ("%03d" % num) + ".png"
                 num += 1
                 cv2.imwrite(os.path.join(self.img_dir, cur_name), frame)
-                time_data.write(str(num) + ":" + str(rospy.Time.now().nsecs) + "\n")
+                if prev > elapsed:
+                    num_secs += 1
+                t_stamp = "%011d" % (num_secs * sec + rospy_time.now().nsecs)
+                time_data.write(("%03d" % num) + ":" + t_stamp + "\n")
             rate.sleep()
-            elapsed = rospy.Time.now() - start
+            prev = elapsed
+            elapsed = rospy_time.now() - start
+
 
         time_data.close()
         self.close()
