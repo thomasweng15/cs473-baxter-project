@@ -14,7 +14,7 @@ import baxter_interface
 
 from position_control import PositionControl
 from webcam import Webcam
-from cs473vision.cs473vision.view_baxter import BaxterObjectView
+from cs473vision.cs473vision.view_baxter import BaxterExperiment
 
 CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config'
 
@@ -134,7 +134,7 @@ class BoxFit(object):
         arm_path = base + 'arm.png'
         uncompressed_path =  base + 'object.png'
 
-        baxter_obj = BaxterObjectView(bg_path)
+        baxter_obj = BaxterExperiment(bg_path)
         baxter_obj.set_arm_image(arm_path)
         #baxter_obj.set_arm_color((h, s, v), (h, s, v))
         baxter_obj.set_uncompressed_image(uncompressed_path)
