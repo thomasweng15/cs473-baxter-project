@@ -106,7 +106,22 @@ def mergeTiming(rostopicdict, csvdict):
 
 	csvdict['rostopic_wrenches'] = rostopic_wrenches
 	csvdict['rostopic_positions'] = rostopic_positions
-	print csvdict
+	return csvdict
+
+def saveAsCSV(filename, mergedict):
+	with open(filename, 'wb') as csvfile:
+		csvwriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+		csvwriter.writerow(['timestamp', 'object', 'px_widths',
+		 'px_heights', 'mm_widths', 'mm_heights', 'rostopic_wrenches', 'rostopic_positions'])
+		for i in range(len(mergedict['timestamps'])):
+			csvwriter.writerow([mergedict['timestamps'][i],
+				mergedict['objects'][i],
+				mergedict['px_widths'][i],
+				mergedict['px_heights'][i],
+				mergedict['mm_widths'][i],
+				mergedict['mm_heights'][i],
+				mergedict['rostopic_wrenches'][i],
+				mergedict['rostopic_positions'][i]])
 
 
 
@@ -125,7 +140,8 @@ def main():
 	rostopicdict = parseRostopic(rostopic_filename)
 	#print rostopicdict
 
-	mergeTiming(rostopicdict, csvdict)
+	mergedict = mergeTiming(rostopicdict, csvdict)
+	saveAsCSV('merge.csv', mergedict)
 
 
 	#plt.scatter(xarr, yarr)
