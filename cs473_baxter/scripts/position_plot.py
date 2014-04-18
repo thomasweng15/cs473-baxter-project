@@ -4,40 +4,46 @@ import matplotlib.pyplot as plt
 import sys
 import csv
 
-ROSTOPIC_START = 0
-WEBCAM_START = 0
 
 
 
-
-def parseFile(file):
-	xarr = []
-	yarr = []
-	f = open(file, "r")
-	str_to_find = ""
+def parseRostopic(rostopic_filename):
+	
+	timestamps = []
+	positions = []
+	wrenches = []
+	f = open(rostopic_filename, "r")
 	lines = []
+	time_of_capture = ROSTOPIC_START
 	for line in f:
 		lines.append(line)
+		
 	for i in range(len(lines)):
 		if "position" in lines[i]:
 			xline = lines[i + 2]
 			x = float(xline[6:])
-			xarr.append(x)
+			positions.append(x)
+			#add timestamp
+			timestamps.append(time_of_capture)
+			#increase by 10ms = 10000000ns
+			time_of_capture += 10000000
 
 		if "wrench" in lines[i]:
 			yline = lines[i + 2]
 			y = float(yline[6:])
-			yarr.append(y)
+			wrenches.append(y)
+
+	dict = {'timestamps': timestamps,
+			'positions': positions,
+			'wrenches': wrenches}
+	return dict
 	
-	plt.scatter(xarr, yarr)
-	plt.show()
 
 def parseCSV(csv_filename, webcam_filename):
 	csvfile = open(csv_filename, 'r')
 	webcamfile = open(webcam_filename, 'r')
 	csvfile.next()
 	csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-	print csvreader
 	timestamps = []
 	objects = []
 	px_widths = []
@@ -54,7 +60,7 @@ def parseCSV(csv_filename, webcam_filename):
 		timestamps.append(t)
 
 		#timestamp.append()
-	print timestamps
+	
 	for row in csvreader:
 		objects.append(row[0])
 		px_widths.append(float(row[1]))
@@ -65,11 +71,20 @@ def parseCSV(csv_filename, webcam_filename):
 		#spring_constants.append(float(row[6]))
 		#print row
 
+	dict = {'timestamps': timestamps,
+	 'objects': objects,
+	 'px_widths': px_widths,
+	 'px_heights': px_heights,
+	 'mm_widths': mm_widths,
+	 'mm_heights': mm_heights}
+	return dict
 	#plt.scatter(mm_heights, forces)
 	#plt.show()
 
 def parseTimingFile(filename):
 	f = open(filename, "r")
+	global WEBCAM_START
+	global ROSTOPIC_START
 	for line in f:
 		if 'webcam' in line:
 			WEBCAM_START = int(line[8:])
@@ -78,9 +93,20 @@ def parseTimingFile(filename):
 
 	assert WEBCAM_START != 0, "webcam timing data not found."
 	assert ROSTOPIC_START != 0, "rostopic timing data not found."
-	print WEBCAM_START
-	print ROSTOPIC_START
 
+def mergeTiming(rostopicdict, csvdict):
+	rostopic_wrenches = []
+	rostopic_positions = []
+	for i in range(len(csvdict['timestamps'])):
+		rostopic_index = 0
+		while rostopic_index < len(rostopicdict['timestamps']) and rostopicdict['timestamps'][rostopic_index] < csvdict['timestamps'][i]:
+			rostopic_index += 1
+		rostopic_wrenches.append(rostopicdict['wrenches'][rostopic_index])
+		rostopic_positions.append(rostopicdict['positions'][rostopic_index])
+
+	csvdict['rostopic_wrenches'] = rostopic_wrenches
+	csvdict['rostopic_positions'] = rostopic_positions
+	print csvdict
 
 
 
@@ -91,7 +117,19 @@ def main():
 	timing_filename = sys.argv[4]
 
 	parseTimingFile(timing_filename)
-	parseCSV(csv_filename, webcam_data_filename)
+	print "ROSTOPIC_START = ", ROSTOPIC_START
+	print "WEBCAM_START = ", WEBCAM_START
+	csvdict = parseCSV(csv_filename, webcam_data_filename)
+	#print csvdict
+
+	rostopicdict = parseRostopic(rostopic_filename)
+	#print rostopicdict
+
+	mergeTiming(rostopicdict, csvdict)
+
+
+	#plt.scatter(xarr, yarr)
+	#plt.show()
 
 if __name__ == "__main__":
 	main()
