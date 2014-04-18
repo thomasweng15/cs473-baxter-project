@@ -31,7 +31,18 @@ class Webcam(object):
         self.capture = cv2.VideoCapture(device)
         self.capture.set(3, 960) # CV_CAP_PROP_FRAME_WIDTH
         self.capture.set(4, 720) # CV_CAP_PROP_FRAME_HEIGHT
-
+        #self.capture.set(10, ) # CV_CAP_PROP_BRIGHTNESS
+        #self.capture.set(11, ) # CV_CAP_PROP_CONTRAST 
+        #self.capture.set(12, ) # CV_CAP_PROP_SATURATION
+        #self.capture.set(13, ) # CV_CAP_PROP_GAIN 
+        #self.capture.set(14, ) # CV_CAP_PROP_EXPOSURE 
+        self.capture.set(21, 0) # CV_CAP_PROP_AUTO_EXPOSURE 
+        self.capture.set(414, 0) # CV_CAP_PROP_XI_AUTO_WB
+        self.caputre.set(415, 0) #CV_CAP_PROP_XI_AEAG
+        print self.capture.get(10), self.capture.get(11), self.capture.get(12),
+        print self.capture.get(13), self.capture.get(14), self.caputre.get(21),
+        print self.capture.get(414), self.caputre.get(415)
+        
         if not self.capture:
             print "Error opening capture device"
             sys.exit(1)
@@ -129,6 +140,7 @@ class Webcam(object):
             filename    base name with which to save snapshots.
         """
         self.open()
+        
         val, frame = self.capture.read()
         cv2.imwrite(os.path.join(self.img_dir, filename), frame)
         self.close()
