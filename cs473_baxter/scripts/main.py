@@ -26,7 +26,7 @@ class BoxFit(object):
     def __init__(self):
         rospy.init_node("cs473_box_fit")
 
-        self.is_glove_attached()
+        # TEMP self.is_glove_attached()
 
         # Verify robot is enabled
         print "Getting robot state..."
@@ -75,7 +75,7 @@ class BoxFit(object):
         raw_input("Remove the reference object. Press ENTER when finished.")
 
         print 'Taking snapshot of just the arm'
-        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_init_positions')
+        joint_pos = self.p_ctrl.get_jp_from_file('r_arm_check_positions')
         self.p_ctrl.move_to_jp(joint_pos)
         camera.take_snapshot('arm.png')
         self.set_neutral()
@@ -147,7 +147,7 @@ class BoxFit(object):
                 break
         print "Compressed size: " + str(baxter_obj.get_compressed_size())
 
-        baxter_obj.export_sizes("./sizes.csv")
+        baxter_obj.export_sizes(base + "sizes.csv")
         baxter_obj.display_results()
 
     def clean_shutdown(self):
@@ -163,6 +163,7 @@ def main():
     camera = Webcam(box_fit.img_dir)
     rospy.on_shutdown(box_fit.clean_shutdown)
     box_fit.set_neutral()
+
 
     box_fit.take_reference_images(camera)
 

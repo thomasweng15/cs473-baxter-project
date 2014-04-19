@@ -53,6 +53,7 @@ srv_gen
 
 *.jpg
 *.png
+*.csv
 timestamps.txt
 rostopic_data.txt
 webcam_data.txt

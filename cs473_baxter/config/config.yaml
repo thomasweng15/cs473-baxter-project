@@ -11,6 +11,15 @@ r_arm_init_positions:
     right_w1: 1.87452452065
     right_w2: -0.0809174864685
 
+r_arm_check_positions:
+    right_s0: 0.753184565991
+    right_s1: -0.156466040186
+    right_e0: 0.039500005
+    right_e1: 1.788621597
+    right_w0: 3.05837419235
+    right_w1: 1.668779348
+    right_w2: -0.066728164
+
 r_arm_compress_positions:
     right_s0: 0.753184565991
     right_s1: -0.156466040186
