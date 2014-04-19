@@ -65,7 +65,8 @@ class BoxFit(object):
         self.p_ctrl.set_neutral()
 
     def take_reference_images(self, camera):
-        """Takes reference images like the background image, 
+        """Takes reference images like the backgrhome/cs473objectproperties/ros_ws/src/cs473-baxter-project/cs473_baxter/data -d /home/cs473objectproperties/ros_ws/src/cs473-baxter-project/cs473_baxter/data/vance-experiment/no-light/nl-spring/nl-s-longes
+ound image, 
         reference object image, arm image, and object image."""
         print 'Taking snapshot of the background.'
         camera.take_snapshot('background.png')
@@ -129,25 +130,12 @@ class BoxFit(object):
     def process_images(self):
         """Use the cs473vision module to process the images."""
         base = self.img_dir + "/"
-        bg_path = base + 'background.png'
-        arm_path = base + 'arm.png'
-        uncompressed_path =  base + 'object.png'
+        baxter_obj = BaxterExperiment()
 
-        baxter_obj = BaxterExperiment(bg_path)
-        baxter_obj.set_arm_image(arm_path)
-        #baxter_obj.set_arm_color((h, s, v), (h, s, v))
-        baxter_obj.set_uncompressed_image(uncompressed_path)
+	baxter_obj.import_images(base)
 
-        print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())
-        for i in range(999):
-            path = base + "compression" + ('%03d' % i) + ".png"
-            if os.path.isfile(path):
-                baxter_obj.set_compressed_image(path)
-            else:
-                break
-        print "Compressed size: " + str(baxter_obj.get_compressed_size())
-
-        baxter_obj.export_sizes("./sizes.csv")
+	baxter_obj.print_results()
+        baxter_obj.export_results(base, segment=False, roi=False, table=True)
         baxter_obj.display_results()
 
     def clean_shutdown(self):

@@ -4,11 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 import csv
 
-
-
-
 def parseRostopic(rostopic_filename):
-	
 	timestamps = []
 	positions = []
 	wrenches = []
@@ -48,35 +44,50 @@ def parseCSV(csv_filename, webcam_filename):
 	objects = []
 	px_widths = []
 	px_heights = []
+	px_width_changes = []
+	px_height_changes = []
 	mm_widths = []
 	mm_heights = []
-	#forces = []
-	#spring_constants = []
+	mm_width_changes = []
+	mm_height_changes = []
+
+	webcamlines =  []
 	for line in webcamfile.readlines():
+		webcamlines.append(line)
+
+	for line in webcamlines[1:]:
+		print line
 		temp = line.split(':')
 		t = temp[1]
-		t = t[1:]
 		t = int(t)
 		timestamps.append(t)
 
-		#timestamp.append()
 	
+	csvrows = []
 	for row in csvreader:
+		csvrows.append(row)
+
+	for row in csvrows[3:]:
 		objects.append(row[0])
 		px_widths.append(float(row[1]))
 		px_heights.append(float(row[2]))
-		mm_widths.append(float(row[3]))
-		mm_heights.append(float(row[4]))
-		#forces.append(float(row[5]))
-		#spring_constants.append(float(row[6]))
-		#print row
-
+		px_width_changes.append(float(row[3]))
+		px_height_changes.append(float(row[4]))
+		mm_widths.append(float(row[5]))
+		mm_heights.append(float(row[6]))
+		mm_width_changes.append(float(row[7]))
+		mm_height_changes.append(float(row[8]))
+		
 	dict = {'timestamps': timestamps,
 	 'objects': objects,
 	 'px_widths': px_widths,
 	 'px_heights': px_heights,
+	 'px_width_changes': px_width_changes,
+	 'px_height_changes': px_height_changes,
 	 'mm_widths': mm_widths,
-	 'mm_heights': mm_heights}
+	 'mm_heights': mm_heights,
+	 'mm_width_changes': mm_width_changes,
+	 'mm_height_changes': mm_height_changes}
 	return dict
 	#plt.scatter(mm_heights, forces)
 	#plt.show()
@@ -112,14 +123,20 @@ def saveAsCSV(filename, mergedict):
 	with open(filename, 'wb') as csvfile:
 		csvwriter = csv.writer(csvfile, delimiter=',', quotechar='|')
 		csvwriter.writerow(['timestamp', 'object', 'px_widths',
-		 'px_heights', 'mm_widths', 'mm_heights', 'rostopic_wrenches', 'rostopic_positions'])
+		 'px_heights', 'px_width_changes', 'px_height_changes', 'mm_widths', 
+		 'mm_heights', 'mm_width_changes', 'mm_height_changes', 
+		 'rostopic_wrenches', 'rostopic_positions'])
 		for i in range(len(mergedict['timestamps'])):
 			csvwriter.writerow([mergedict['timestamps'][i],
 				mergedict['objects'][i],
 				mergedict['px_widths'][i],
 				mergedict['px_heights'][i],
+				mergedict['px_width_changes'][i],
+				mergedict['px_height_changes'][i],
 				mergedict['mm_widths'][i],
 				mergedict['mm_heights'][i],
+				mergedict['mm_width_changes'][i],
+				mergedict['mm_height_changes'][i],
 				mergedict['rostopic_wrenches'][i],
 				mergedict['rostopic_positions'][i]])
 
