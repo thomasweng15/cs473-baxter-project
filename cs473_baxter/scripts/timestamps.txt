@@ -1,3 +1,0 @@
-webcam: 579566955
-rostopic: 586740016
-compress: 591494083
