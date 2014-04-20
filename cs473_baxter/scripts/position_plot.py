@@ -10,7 +10,7 @@ def parseRostopic(rostopic_filename):
 	wrenches = []
 	f = open(rostopic_filename, "r")
 	lines = []
-	time_of_capture = ROSTOPIC_START
+	time_of_capture = ROSTOPIC_START + 30000000
 	for line in f:
 		lines.append(line)
 		
@@ -56,7 +56,6 @@ def parseCSV(csv_filename, webcam_filename):
 		webcamlines.append(line)
 
 	for line in webcamlines[1:]:
-		print line
 		temp = line.split(':')
 		t = temp[1]
 		t = int(t)

@@ -1,0 +1,1 @@
+python scripts/position_plot.py data/vance-experiment/no-light/nl-foam/nl-f-triangle/rostopic_data.txt data/vance-experiment/no-light/nl-foam/nl-f-triangle/sizes.csv data/vance-experiment/no-light/nl-foam/nl-f-triangle/webcam_data.txt data/vance-experiment/no-light/nl-foam/nl-f-triangle/timestamps.txt
