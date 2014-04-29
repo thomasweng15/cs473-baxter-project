@@ -26,8 +26,6 @@ class BoxFit(object):
     def __init__(self):
         rospy.init_node("cs473_box_fit")
 
-        self.is_glove_attached()
-
         # Verify robot is enabled
         print "Getting robot state..."
         self._rs = baxter_interface.RobotEnable()
@@ -39,15 +37,6 @@ class BoxFit(object):
         self.p_ctrl = PositionControl('right')
 
         self.img_dir = self._create_img_dir()
-
-    def is_glove_attached(self):
-        """Prompt the user to check if Baxter's pusher glove
-        is attached or not. Exit the process if it is not.
-        """
-        glove_on = raw_input("Is Baxter's glove attached? (y/n): ")
-        if glove_on is not "y":
-            print "\nERROR: Attach glove with glove.py before running BoxFit."
-            sys.exit(1)
 
     def _create_img_dir(self):
         """Creates a timestamped folder in the img_dir directory
@@ -135,7 +124,6 @@ class BoxFit(object):
 
         baxter_obj = BaxterExperiment(bg_path)
         baxter_obj.set_arm_image(arm_path)
-        #baxter_obj.set_arm_color((h, s, v), (h, s, v))
         baxter_obj.set_uncompressed_image(uncompressed_path)
 
         print "Uncompressed size: " + str(baxter_obj.get_uncompressed_size())

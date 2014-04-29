@@ -51,6 +51,7 @@ srv_gen
 */src/**/cfg
 */*/src/**/*
 
+# Don't include data files in the repository. 
 *.jpg
 *.png
 *.csv
