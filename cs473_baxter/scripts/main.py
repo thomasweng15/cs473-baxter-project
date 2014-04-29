@@ -26,7 +26,7 @@ class BoxFit(object):
     def __init__(self):
         rospy.init_node("cs473_box_fit")
 
-        # TEMP self.is_glove_attached()
+        self.is_glove_attached()
 
         # Verify robot is enabled
         print "Getting robot state..."
@@ -164,17 +164,11 @@ def main():
     rospy.on_shutdown(box_fit.clean_shutdown)
     box_fit.set_neutral()
 
-
     box_fit.take_reference_images(camera)
 
     box_fit.compress_object()
 
     box_fit.process_images()
-
-    # get endpoint data for the compression run
-    # calculate hooke's spring constant and return the est. value
-    #  for each discrete snapshot, averaging them all together. 
-    # k = X / F, k = constant, X = distance, F = force
 
 if __name__ == '__main__':
     main()
