@@ -1,3 +1,17 @@
+"""
+position_plot.py
+Sam Goldstein
+
+This script combines the inputs of the rostopic file, the results of the 
+image processing, the webcam timestamp file, and the timestamps file
+(in that order), and merges them all into a single csv called "merge.csv".
+"""
+
+
+
+
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 #from pylab import *
@@ -8,7 +22,16 @@ class Plotting(object):
 	def __init__(self):
 
 
+
+
 	def parseRostopic(rostopic_filename):
+		"""parses the rostopic file
+		and returns a dictionary containing the timestamps,
+		x-positions, and x-wrenches. This method assumes the 
+		rostopic data is collected at 100Hz.
+		params:
+			rostopic_filename: name of the file to be parsed
+		"""
 		timestamps = []
 		positions = []
 		wrenches = []
@@ -40,6 +63,12 @@ class Plotting(object):
 		
 
 	def parseCSV(csv_filename, webcam_filename):
+		"""parses the csv file and the webcam timestamp file 
+		and returns a dictionary
+		params:
+			csv_filename: the name of the size.csv file
+			webcam_filename: the name of the webcam timestamps file
+			"""
 		csvfile = open(csv_filename, 'r')
 		webcamfile = open(webcam_filename, 'r')
 		csvfile.next()
@@ -95,6 +124,12 @@ class Plotting(object):
 		#plt.show()
 
 	def parseTimingFile(filename):
+		"""parses the timestamps file, which says when the rostopic
+		and webcam data collections started, and saves them in global
+		variables
+		params:
+			filename: the name of the file to be parsed
+		"""
 		f = open(filename, "r")
 		global WEBCAM_START
 		global ROSTOPIC_START
@@ -108,6 +143,14 @@ class Plotting(object):
 		assert ROSTOPIC_START != 0, "rostopic timing data not found."
 
 	def mergeTiming(rostopicdict, csvdict):
+		"""this merges the data from rostopic publication and from webcam
+		sizes into a single dictionary. The merge is based on the timestamps
+		of the data collection, and returns the results in a dictionary
+		params
+			rostopicdict: the dictionary returned by parseRostopic
+			csvdict: the dictionary returned by parseCSV
+		"""
+
 		rostopic_wrenches = []
 		rostopic_positions = []
 		for i in range(len(csvdict['timestamps'])):
@@ -122,6 +165,11 @@ class Plotting(object):
 		return csvdict
 
 	def saveAsCSV(filename, mergedict):
+		"""saves the merged data in mergedict into a csv file
+		params
+			filename: the name under which to save the output csv
+			mergedict: the dictionary returned by mergeTiming
+		"""
 		with open(filename, 'wb') as csvfile:
 			csvwriter = csv.writer(csvfile, delimiter=',', quotechar='|')
 			csvwriter.writerow(['timestamp', 'object', 'px_widths',
@@ -143,6 +191,7 @@ class Plotting(object):
 					mergedict['rostopic_positions'][i]])
 
 	def main():
+		"""CSV merging module"""
 		rostopic_filename = sys.argv[1]
 		csv_filename = sys.argv[2]
 		webcam_data_filename = sys.argv[3]
