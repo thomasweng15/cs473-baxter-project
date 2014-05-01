@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Position Control Module."""
+"""Class controlling movement of Baxter's limb."""
 
 import yaml
 
@@ -54,7 +54,16 @@ class PositionControl(object):
 
 
 def main():
-    """Position Control module."""
+    """Position Control module.
+
+    This module is intended to be used in conjunction
+    with start.py. Running this module as a standalone
+    program is for debugging purposes only. 
+
+    To run this module as a standalone program, run:
+    `rosrun cs473_baxter position_control.py`
+    You may have to enable Baxter first.
+    """
     rospy.init_node("cs473_basic_poke")
 
     p_control = PositionControl('right')

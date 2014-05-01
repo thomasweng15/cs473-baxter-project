@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Webcam module."""
+"""Module for controlling the webcam."""
 
 import time
 import sys
@@ -105,12 +105,12 @@ class Webcam(object):
         self.open()
 
         rate = rospy.Rate(delay)    # sleep rate between snapshots
-        num = 0     # index of snapshot
+        num = 0                     # index of snapshot
         rospy_time = rospy.Time()   # time object
         start = rospy_time.now()    # start of snapshot taking
         elapsed = rospy_time.now() - start  # time now vs. start
-        sec = 1000000000    # one second in nanoseconds
-        num_secs = 0        # number of whole seconds that have elapsed. 
+        sec = 1000000000            # one second in nanoseconds
+        num_secs = 0                # number of seconds that have elapsed. 
 
         time_data = open(os.path.join(self.img_dir, "webcam_data.txt"), 'a+')
         time_data.write("webcam start: " + str(start.nsecs) + '\n')
@@ -166,7 +166,14 @@ class Webcam(object):
 
 
 def main():
-    """Webcam module."""
+    """Module for interfacing with the webcam.
+
+    Run this module as a standalone program by running 
+    `rosrun cs473_baxter webcam.py [args]`
+    
+    Running the module by itself is useful for 
+    adjusing the camera angle (see comment below) or 
+    for debugging."""
     arg_fmt = argparse.RawDescriptionHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=arg_fmt,
                                     description=main.__doc__)
@@ -191,6 +198,10 @@ def main():
 
     cam = Webcam(args.directory)
     cam.take_automatic_snapshot("compression", duration=args.time)
+    
+    # Comment out the line above and un-comment the line below
+    # in order to access the camera for positioning. 
+
     #cam.show_video_stream()
 
 if __name__ == '__main__':
