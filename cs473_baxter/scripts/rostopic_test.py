@@ -2,10 +2,14 @@
 
 """Rostopic time opening test module.
 
+This is a standalone script. 
+
 In your ros_ws workspace, run:
     rosrun cs473_baxter rostopic_test.py -f [FILE] -s [SECONDS]
 
-The seconds that worked on our workstation was 0.3.
+The seconds that worked on our workstation was 0.3. We opened up the file
+that contained the data from executing the command and we either got one 
+time interval of data or no data at all for n=10 trials. 
 """
 
 import time

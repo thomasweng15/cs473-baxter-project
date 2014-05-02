@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Glove grip/release module"""
+"""Compressor piece grip/release module"""
 
 import argparse
 
