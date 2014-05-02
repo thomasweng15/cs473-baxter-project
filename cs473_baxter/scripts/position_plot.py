@@ -14,6 +14,9 @@ import sys
 import csv
 
 class Plotting(object):
+	def __init__(self, directory):
+		self.directory = directory
+
 	def parseRostopic(self, rostopic_filename):
 		"""parses the rostopic file
 		and returns a dictionary containing the timestamps,
@@ -182,7 +185,10 @@ class Plotting(object):
 
 def main():
 	"""CSV merging module"""
-	rostopic_filename = sys.argv[1]
+	directory = "./"
+	plotting = Plotting(directory)
+
+	rostopic_filename = plotting.directory + sys.argv[1]
 	csv_filename = sys.argv[2]
 	webcam_data_filename = sys.argv[3]
 	timing_filename = sys.argv[4]
