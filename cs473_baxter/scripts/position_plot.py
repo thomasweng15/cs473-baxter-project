@@ -5,6 +5,9 @@ Sam Goldstein
 This script combines the inputs of the rostopic file, the results of the 
 image processing, the webcam timestamp file, and the timestamps file
 (in that order), and merges them all into a single csv called "merge.csv".
+
+command line usage:
+python position_plot.py [directory] [rostopic filename] [sizes csv file] [webcam timestamps file] [init timestamps file]
 """
 
 import numpy as np
@@ -185,13 +188,13 @@ class Plotting(object):
 
 def main():
 	"""CSV merging module"""
-	directory = "./"
+	directory = sys.argv[1] 	
 	plotting = Plotting(directory)
 
-	rostopic_filename = plotting.directory + sys.argv[1]
-	csv_filename = plotting.directory + sys.argv[2]
-	webcam_data_filename = plotting.directory + sys.argv[3]
-	timing_filename = plotting.directory + sys.argv[4]
+	rostopic_filename = plotting.directory + sys.argv[2]
+	csv_filename = plotting.directory + sys.argv[3]
+	webcam_data_filename = plotting.directory + sys.argv[4]
+	timing_filename = plotting.directory + sys.argv[5]
 
 	plotting.parseTimingFile(timing_filename)
 	print "ROSTOPIC_START = ", ROSTOPIC_START
