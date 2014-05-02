@@ -75,6 +75,7 @@ Running the Software
 
 The program will present instructions regarding what objects to put in front of Baxter in order to run a full compression trial
 
+
 File Structure
 --------------
 Here is a rundown of the file directory structure
