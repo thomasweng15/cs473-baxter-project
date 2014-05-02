@@ -15,6 +15,7 @@ import baxter_interface
 from position_control import PositionControl
 from webcam import Webcam
 from cs473vision.cs473vision.view_baxter import BaxterExperiment
+from position_plot import Plotting
 
 CONFIG = './src/cs473-baxter-project/cs473_baxter/config/config.yaml'
 
@@ -157,6 +158,10 @@ def main():
     box_fit.compress_object()
 
     box_fit.process_images()
+
+    #plotting = Plotting(box_fit.img_dir)
+    # run turn into csv commands
+    # e.g. plotting.saveAsCSV
 
 if __name__ == '__main__':
     main()
