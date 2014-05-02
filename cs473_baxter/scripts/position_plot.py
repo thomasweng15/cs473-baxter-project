@@ -189,21 +189,22 @@ def main():
 	plotting = Plotting(directory)
 
 	rostopic_filename = plotting.directory + sys.argv[1]
-	csv_filename = sys.argv[2]
-	webcam_data_filename = sys.argv[3]
-	timing_filename = sys.argv[4]
+	csv_filename = plotting.directory + sys.argv[2]
+	webcam_data_filename = plotting.directory + sys.argv[3]
+	timing_filename = plotting.directory + sys.argv[4]
 
-	parseTimingFile(timing_filename)
+	plotting.parseTimingFile(timing_filename)
 	print "ROSTOPIC_START = ", ROSTOPIC_START
 	print "WEBCAM_START = ", WEBCAM_START
-	csvdict = parseCSV(csv_filename, webcam_data_filename)
+	csvdict = plotting.parseCSV(csv_filename, webcam_data_filename)
 	#print csvdict
 
-	rostopicdict = parseRostopic(rostopic_filename)
+	rostopicdict = plotting.parseRostopic(rostopic_filename)
 	#print rostopicdict
 
-	mergedict = mergeTiming(rostopicdict, csvdict)
-	saveAsCSV('merge.csv', mergedict)
+	mergedict = plotting.mergeTiming(rostopicdict, csvdict)
+	savefile = plotting.directory + 'merge.csv'
+	plotting.saveAsCSV(savefile, mergedict)
 
 	#plt.scatter(xarr, yarr)
 	#plt.show()

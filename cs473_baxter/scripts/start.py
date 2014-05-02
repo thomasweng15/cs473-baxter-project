@@ -159,7 +159,24 @@ def main():
 
     box_fit.process_images()
 
-    #plotting = Plotting(box_fit.img_dir)
+    plotting = Plotting(box_fit.img_dir)
+
+    rostopic_filename = plotting.directory + 'rostopic_data.txt'
+    csv_filename = plotting.directory + 'sizes.csv'
+    webcam_data_filename = plotting.directory + 'webcam_data.txt'
+    timing_filename = plotting.directory + 'timestamps.txt'
+
+    plotting.parseTimingFile(timing_filename)
+    csvdict = plotting.parseCSV(csv_filename, webcam_data_filename)
+    #print csvdict
+
+    rostopicdict = plotting.parseRostopic(rostopic_filename)
+    #print rostopicdict
+
+    mergedict = plotting.mergeTiming(rostopicdict, csvdict)
+    savefile = plotting.directory + 'merge.csv'
+    plotting.saveAsCSV(savefile, mergedict)
+
     # run turn into csv commands
     # e.g. plotting.saveAsCSV
 
